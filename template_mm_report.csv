@@ -1,0 +1,10 @@
+metric,mtd,ytd
+nps_score,74,70
+surveys_total,192,1280
+promoters,150,940
+passives,26,215
+detractors,16,125
+email_bounce,2.1,2.3
+lqa_completed,16,110
+lqa_total,18,125
+lqa_pending,2,15
