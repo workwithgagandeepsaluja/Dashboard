@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive L&D Training Analytics Dashboard with KPI cards, charts, filters, and Google Sheets integration" />
+    <meta name="theme-color" content="#6366f1" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236366f1'/><text x='50' y='68' text-anchor='middle' font-size='50' font-weight='bold' fill='white'>📊</text></svg>" />
+    <title>L&D Training Analytics Dashboard</title>
+    <style>
+      /* Critical: prevent flash of wrong colors on file:// load */
+      html { background: #f9fafb; color: #111827; }
+      html.dark { background: #111827; color: #f9fafb; }
+      body { margin: 0; min-height: 100vh; background: inherit; }
+      #root { min-height: 100vh; background: inherit; }
+    </style>
+    <script>
+      // Apply dark mode BEFORE any CSS/JS loads to prevent flash
+      (function() {
+        try {
+          var saved = localStorage.getItem('ld-dashboard-theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
