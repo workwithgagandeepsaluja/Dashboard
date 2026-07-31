@@ -1031,6 +1031,12 @@ function buildSection(sheet){
 
   var dates = uniq(records.map(function(r){ return r.__date; }).filter(Boolean)).sort();
 
+  /* People lists (interns / apprentices / trainees) are a standing roster, not a
+     daily log — they must show in full on every date. Any date column they have
+     (DOJ, Start Date…) stays visible as an ordinary field, but is never used to
+     filter, to build date chips, or to trigger a "no data for this date" error. */
+  if(isRoster){ dateCol=null; dates=[]; records.forEach(function(r){ r.__date=''; }); }
+
   return {
     name:sheet.name, id:slug(sheet.name),
     type: isKPI?'kpi':(isReviews?'reviews':(isRoster?'roster':'table')),
@@ -1227,7 +1233,9 @@ function renderAll(){
   }
 
   /* date awareness */
-  var relevant = isOverview ? STATE.allDates : (sec.dates.length?sec.dates:STATE.allDates);
+  var relevant = isOverview ? STATE.allDates
+               : (sec.type==='roster' ? []                       /* date-independent */
+               : (sec.dates.length?sec.dates:STATE.allDates));
   var missing  = relevant.length && relevant.indexOf(STATE.selectedDate)===-1;
   SUPPRESS_SECTION_ALERT = !!missing && !isOverview;
   if(missing){
@@ -1781,22 +1789,20 @@ function renderRosterSection(sec,idx,compact){
   wrap.className='sec'; wrap.style.animationDelay=(idx*0.06)+'s';
   var st=STATE.tableState[sec.id]=STATE.tableState[sec.id]||{q:''};
 
-  var rows = sec.dateCol ? sec.records.filter(function(r){ return r.__date===STATE.selectedDate; }) : sec.records.slice();
+  /* full roster, always — never filtered by the selected date */
+  var rows = sec.records.slice();
 
   var head=document.createElement('div');
   head.className='sec-head';
   head.innerHTML='<div class="sec-title">'+esc(sec.name)+'</div>'+
     '<span class="badge">'+rows.length+' people</span>'+
-    (sec.dateCol?'<span class="badge b2">'+esc(prettyDate(STATE.selectedDate))+'</span>':'<span class="badge b4">All time</span>')+
+    '<span class="badge b4">Full roster</span>'+
     (compact?'<div class="sec-spacer"><button class="ibtn" data-open="'+esc(sec.id)+'">Open &rarr;</button></div>':'');
   wrap.appendChild(head);
 
   if(!rows.length){
-    if(SUPPRESS_SECTION_ALERT) return wrap;
-    wrap.appendChild(alertEl('error','⛔','No records in “'+esc(sec.name)+'” for '+prettyDate(STATE.selectedDate),
-      sec.dates.length?'This tab holds data for <b>'+sec.dates.length+'</b> other date'+(sec.dates.length>1?'s':'')+'.'
-                     :'No rows were found in this tab.',
-      sec.dates.length?[{label:'Jump to latest',act:'goto',val:sec.dates[sec.dates.length-1]}]:[]));
+    wrap.appendChild(alertEl('warn','📄','“'+esc(sec.name)+'” is empty',
+      'No rows were found in this tab. Add people to the spreadsheet and press Refresh.',[]));
     return wrap;
   }
 
@@ -2475,5 +2481,5 @@ document.addEventListener('click',function(e){
   if(b) switchPage(b.dataset.open);
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23f229a2da1563c',t:'MTc4NTUyNzQ1OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23f5777aa27d220',t:'MTc4NTUyOTYyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
