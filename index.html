@@ -416,6 +416,19 @@ tbody tr:last-child td{border-bottom:0}
 .rev-item.is-click:hover .rev-more,.rev-item.is-click:focus-visible .rev-more{opacity:1;transform:none}
 @media (hover:none){ .rev-more{opacity:.75;transform:none} }
 
+/* clickable table rows */
+tbody tr.is-click{cursor:pointer}
+tbody tr.is-click:hover{background:rgba(var(--tint),.07)}
+tbody tr.is-click:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+tbody tr.is-click td:last-child{position:relative;padding-right:26px}
+tbody tr.is-click td:last-child::after{
+  content:'›';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  color:var(--muted-2);font-size:1.05rem;opacity:0;transition:var(--t);
+}
+tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7px}
+@media (hover:none){ tbody tr.is-click td:last-child::after{opacity:.5} }
+.pv-of{font-size:.68rem;font-weight:600;color:var(--muted-2);margin-left:1px}
+
 /* toolbar */
 .toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .search{position:relative;flex:1;min-width:170px;max-width:360px}
@@ -594,7 +607,8 @@ tbody tr:last-child td{border-bottom:0}
     </div>
     <div class="field" data-for="gviz">
       <label>Tab names <span style="text-transform:none;font-weight:500">(comma separated — optional)</span></label>
-      <input type="text" id="cfgTabs" placeholder="KPIs, Training Sessions, Interns, Reviews">
+      <input type="text" id="cfgTabs" placeholder="KPIs, Reviews, Surveys, Interns, Apprentices, Training Sessions">
+      <div id="cfgLoaded" class="sub"></div>
       <div class="sub">Leave blank to auto-discover. Without an API key, discovery probes common tab names, so listing them here is the most reliable option.</div>
     </div>
     <div class="field" data-for="apikey">
@@ -616,6 +630,7 @@ tbody tr:last-child td{border-bottom:0}
     </div>
 
     <div class="modal-foot">
+      <button class="ibtn" id="cfgFillTabs" title="Fill in the standard L&amp;D tab names">Use standard tabs</button>
       <button class="ibtn" id="cfgCancel">Cancel</button>
       <button class="ibtn primary" id="cfgSave">Save &amp; connect</button>
     </div>
@@ -795,7 +810,9 @@ function classify(header){
    FETCH LAYER — three ways of reaching the workbook
 ══════════════════════════════════════════════════════════════════════════ */
 var COMMON_TABS = ['KPI','KPIs','Data','Dashboard','Summary','Metrics','Overview','Training','Trainings',
-  'Training Sessions','Sessions','Interns','Internship','Attendance','Feedback','Reviews','Surveys',
+  'Training Sessions','Sessions','Interns','Intern','Internship','Interns Data','Intern Data',
+  'Apprentices','Apprentice','Apprenticeship','Apprentices Data','Apprentice Data','Trainees','Trainee',
+  'Attendance','Feedback','Reviews','Guest Reviews','Surveys','Guest Surveys','GSTS',
   'NPS','LQA','L&D','LD','MM','MM Report','Budget','Departments','Staff','Trainers','Sheet1'];
 
 function withTimeout(promise,ms,label){
@@ -845,12 +862,13 @@ async function loadViaGviz(){
   if(!wanted.length){
     // no list given: read the default tab, then probe common names in parallel
     var first=await fetchGvizTab(id,'');
-    sheets.push(first);
     var probes=await Promise.all(COMMON_TABS.map(function(t){
       return fetchGvizTab(id,t).then(function(s){ return s; },function(){ return null; });
     }));
+    /* Named probes go FIRST so a real tab name always beats the unnamed default
+       fetch during de-duplication — otherwise the first tab shows as "Sheet1". */
     probes.forEach(function(s){ if(s && s.rows.length>1) sheets.push(s); });
-    // de-duplicate identical tabs discovered twice
+    sheets.push(first);
     var seen={};
     sheets=sheets.filter(function(s){
       var sig=JSON.stringify(s.rows[0])+'|'+s.rows.length;
@@ -998,8 +1016,16 @@ function buildSection(sheet){
 
   /* A "roster" tab (interns / trainees / staff) = a person-name column plus a
      Status column. Rendered as clickable people grouped by status category. */
-  var personCol = findCol(/^(name|internname|traineename|fullname|employeename|candidate|candidatename|person)$/)
-               || findCol(/(internname|traineename|employeename)/);
+  /* Person-name column. Exact matches first, then "<role> Name" patterns, then any
+     column ending in "name" that clearly isn't a college / mentor / company name. */
+  var NOT_PERSON=/(college|institute|university|school|company|hotel|brand|department|dept|division|mentor|trainer|guide|supervisor|manager|file|document|doc|platform|source|bank|course|program|programme|batch|trade|session)/;
+  var personCol = findCol(/^(name|fullname|person|candidate|candidatename)$/)
+               || findCol(/^(intern|trainee|apprentice|employee|staff|associate|student|member)name$/)
+               || findCol(/(internname|traineename|apprenticename|employeename|staffname|associatename|studentname)/)
+               || columns.filter(function(c){
+                    var n=norm(c.key);
+                    return /name$/.test(n) && !NOT_PERSON.test(n);
+                  })[0];
   var statusCol2= findCol(/^(status|state|stage|currentstatus|trainingstatus)$/);
   var isRoster  = !isKPI && !isReviews && !!(personCol && statusCol2);
 
@@ -1615,6 +1641,101 @@ function openReviewModal(sec,rec){
   $('[data-pm-close]',bg).addEventListener('click',closePersonModal);
 }
 
+/* ── generic row detail popup (surveys, sessions, any table) ──────────── */
+function openRowModal(sec,rec){
+  /* pick a sensible headline: person/guest name, else first text column */
+  var titleCol = sec.personCol || sec.guestCol ||
+    sec.columns.filter(function(c){ return !c.isNumeric && c.filled>0 && c!==sec.dateCol; })[0] ||
+    sec.columns[0];
+  var title = titleCol ? String(rec[titleCol.key]||'').trim() : '';
+  if(!title) title = sec.name;
+
+  var statusCol = sec.statusCol || sec.findCol(/(status|state|stage)/);
+  var statusVal = statusCol?String(rec[statusCol.key]||'').trim():'';
+
+  /* score-style columns get a 0-10 / 0-5 / 0-100 bar */
+  var SCORE_RX=/(score|rating|cleanliness|service|comfort|food|beverage|fnb|f&b|overall|quality|ambience|ambiance|value|staff|room|checkin|checkout|satisfaction|nps|csat|experience|hygiene|amenities|wifi|breakfast)/;
+  /* identifiers and counts are numbers, not ratings — never draw a bar for them */
+  var NOT_SCORE_RX=/(no$|no\.$|number$|num$|id$|code$|floor$|count$|qty$|quantity$|amount$|total$|attendees$|pax$|nights$|age$|year$|phone$|mobile$|contact$|pin$|zip$)/;
+
+  var used={}; if(titleCol) used[titleCol.key]=1;
+  var blocks=[];
+
+  if(sec.dateCol && rec.__date){
+    used[sec.dateCol.key]=1;
+    blocks.push('<div class="pfield"><div class="pf-k"><span class="pf-ic">📅</span>Date</div>'+
+      '<div class="pf-v">'+esc(prettyDate(rec.__date))+'</div></div>');
+  }
+
+  sec.columns.forEach(function(c){
+    if(used[c.key]||!c.filled) return;
+    if(RX.ignore.test(norm(c.key))) return;
+    if(/^__/.test(c.key)) return;
+    used[c.key]=1;
+
+    var raw=String(rec[c.key]==null?'':rec[c.key]).trim();
+    var n=toNum(raw);
+    var nk=norm(c.key), val, long=false;
+
+    if(raw===''){
+      val='<span class="pv-empty">Not recorded</span>';
+    } else if(statusCol && c.key===statusCol.key){
+      val=cellHTML(raw,c);
+    } else if(c.isNumeric && n!=null && SCORE_RX.test(nk) && !NOT_SCORE_RX.test(nk)){
+      /* infer the scale from the value itself */
+      var max = n>10 ? 100 : (n>5 ? 10 : 5);
+      var pc  = Math.max(0,Math.min(100,n/max*100));
+      var cls = pc>=80?'good':pc>=60?'warn':'bad';
+      val='<div class="pv-bar"><i class="'+cls+'" style="width:'+pc.toFixed(0)+'%"></i></div>'+
+          '<span class="pv-num '+cls+'">'+n+'<span class="pv-of">/'+max+'</span></span>';
+    } else if(c.isNumeric && n!=null){
+      val='<span class="pv-num">'+esc(n.toLocaleString('en-IN'))+'</span>';
+    } else if(raw.length>110){
+      long=true;
+      val='<div class="rev-full">'+esc(raw)+'</div>';
+    } else {
+      val=cellHTML(raw,c);
+    }
+    blocks.push('<div class="pfield'+(raw===''?' is-empty':'')+(long?' col':'')+'">'+
+      '<div class="pf-k"><span class="pf-ic">'+(long?'💬':'•')+'</span>'+esc(c.key)+'</div>'+
+      '<div class="pf-v">'+val+'</div></div>');
+  });
+
+  var col=hueOf(title);
+  var bg=$('#personModal');
+  bg.innerHTML='<div class="modal glass person-modal" role="dialog" aria-modal="true" aria-label="Details">'+
+    '<button class="pm-close" aria-label="Close">×</button>'+
+    '<div class="pm-head">'+
+      '<span class="avatar lg" style="background:'+col+'22;color:'+col+';border-color:'+col+'55">'+
+        esc(initialsOf(title))+'</span>'+
+      '<div style="min-width:0"><h3 style="margin:0">'+esc(title)+'</h3>'+
+      '<div class="pm-sub">'+(statusVal?cellHTML(statusVal,statusCol):'')+
+      '<span class="pm-src">'+esc(sec.name)+'</span></div></div>'+
+    '</div>'+
+    '<div class="pm-body">'+(blocks.length?blocks.join(''):'<div class="empty">No details recorded</div>')+'</div>'+
+    '<div class="modal-foot"><button class="ibtn" data-pm-copy>⧉ Copy details</button>'+
+    '<button class="ibtn primary" data-pm-close>Close</button></div>'+
+  '</div>';
+  bg.classList.add('open');
+  document.body.style.overflow='hidden';
+
+  $('[data-pm-copy]',bg).addEventListener('click',function(){
+    var lines=[title,''];
+    $$('.pfield',bg).forEach(function(f){
+      var k=$('.pf-k',f).cloneNode(true);
+      var ic=k.querySelector('.pf-ic'); if(ic) ic.remove();
+      lines.push(k.textContent.trim()+': '+$('.pf-v',f).textContent.trim());
+    });
+    var txt=lines.join('\n');
+    if(navigator.clipboard&&navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(function(){ toast('Details copied','ok'); },
+                                             function(){ fallbackCopy(txt); toast('Details copied','ok'); });
+    else { fallbackCopy(txt); toast('Details copied','ok'); }
+  });
+  bg.querySelector('.pm-close').addEventListener('click',closePersonModal);
+  $('[data-pm-close]',bg).addEventListener('click',closePersonModal);
+}
+
 function fallbackCopy(t){
   var ta=document.createElement('textarea');
   ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
@@ -1756,7 +1877,12 @@ function renderRosterSection(sec,idx,compact){
 var PERSON_FIELDS=[
   { label:'Current Department', rx:/^(department|dept|currentdepartment|currentdept|division|posting)$/, icon:'🏛' },
   { label:'Current Rotation',   rx:/(rotation|section|assignment|placement)/,                            icon:'🔄' },
-  { label:'College',            rx:/^(college|institute|university|school)$/,                            icon:'🎓' },
+  { label:'Trade / Discipline', rx:/^(trade|discipline|craft|specialisation|specialization|stream)$/,     icon:'🛠' },
+  { label:'Batch',              rx:/^(batch|batchno|batchnumber|cohort|year)$/,                           icon:'📦' },
+  { label:'Registration No.',   rx:/(registrationno|registrationnumber|regno|napsid|natsid|apprenticeid|enrollmentno|enrolmentno|contractno|contractnumber)/, icon:'🆔' },
+  { label:'Scheme',             rx:/^(scheme|naps|nats|type|category|apprenticeshiptype)$/,               icon:'📋' },
+  { label:'Stipend',            rx:/(stipend|monthlystipend|allowance)/,                                  icon:'💰', money:true },
+  { label:'College',            rx:/^(college|institute|university|school)$/,                             icon:'🎓' },
   { label:'Start Date',         rx:/^(startdate|start|doj|dateofjoining|joiningdate|from)$/,             icon:'📅', date:true },
   { label:'End Date',           rx:/^(enddate|end|dol|dateofleaving|leavingdate|to|completiondate)$/,    icon:'🏁', date:true },
   { label:'Attendance',         rx:/(attendance|present|attendancepercentage)/,                          icon:'📊', pct:true },
@@ -1811,6 +1937,9 @@ function openPersonModal(sec,rec){
         val='<div class="pv-bar"><i class="'+cls+'" style="width:'+pc.toFixed(0)+'%"></i></div>'+
             '<span class="pv-num '+cls+'">'+pc.toFixed(pc%1?1:0)+'%</span>';
       } else val=esc(raw);
+    } else if(f.money){
+      var mn=toNum(raw);
+      val = mn!=null ? '<span class="pv-num">₹'+mn.toLocaleString('en-IN')+'</span>' : esc(raw);
     } else if(f.stars){
       var rn=toNum(raw);
       val=(rn!=null&&rn>0&&rn<=5)?'<span class="stars">'+starStr(rn)+'</span> <span class="pv-num">'+rn+'</span>':esc(raw);
@@ -1858,7 +1987,9 @@ function openPersonModal(sec,rec){
   $('[data-pm-copy]',bg).addEventListener('click',function(){
     var lines=[name,''];
     $$('.pfield',bg).forEach(function(f){
-      var k=$('.pf-k',f).textContent.trim();
+      var kEl=$('.pf-k',f).cloneNode(true);
+      var kIc=kEl.querySelector('.pf-ic'); if(kIc) kIc.remove();
+      var k=kEl.textContent.trim();
       var vEl=$('.pf-v',f);
       var mask=$('.pv-mask',vEl);
       var v=mask?mask.dataset.secret:vEl.textContent.replace(/\s*(Show|Hide)\s*$/,'').trim();
@@ -1910,6 +2041,8 @@ function renderTableSection(sec,idx,compact){
     return wrap;
   }
 
+  rows.forEach(function(r,i){ r.__tidx=i; });
+
   var cols=sec.columns.filter(function(c){ return c.filled>0 && !RX.ignore.test(norm(c.key)); });
   var card=document.createElement('div');
   card.className='card';
@@ -1941,12 +2074,25 @@ function renderTableSection(sec,idx,compact){
       });
     }
     $('tbody',card).innerHTML=view.map(function(r,i){
-      return '<tr style="animation-delay:'+Math.min(i*0.02,0.4).toFixed(2)+'s">'+cols.map(function(c){
+      return '<tr class="is-click" data-row="'+r.__tidx+'" tabindex="0" role="button" '+
+        'aria-label="Open full details for this row" '+
+        'style="animation-delay:'+Math.min(i*0.02,0.4).toFixed(2)+'s">'+cols.map(function(c){
         return '<td>'+cellHTML(r[c.key],c)+'</td>';
       }).join('')+'</tr>';
     }).join('');
     $('[data-noresult]',card).style.display=view.length?'none':'block';
     $('.badge',head).textContent=view.length+' rows';
+
+    $$('tr[data-row]',card).forEach(function(tr){
+      var openIt=function(){
+        var rec=rows.filter(function(x){ return String(x.__tidx)===tr.dataset.row; })[0];
+        if(rec) openRowModal(sec,rec);
+      };
+      tr.addEventListener('click',openIt);
+      tr.addEventListener('keydown',function(e){
+        if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openIt(); }
+      });
+    });
   }
   paint();
 
@@ -2226,6 +2372,16 @@ function openSettings(){
   $('#cfgScriptUrl').value=CFG.scriptUrl||'';
   $('#cfgTabs').value=(CFG.tabs||[]).join(', ');
   $('#cfgRefresh').value=String(CFG.refreshMs||0);
+  var li=$('#cfgLoaded');
+  if(li){
+    if(STATE.sections.length){
+      li.innerHTML='<b style="color:var(--good)">Currently loaded ('+STATE.sections.length+'):</b> '+
+        STATE.sections.map(function(s){ return esc(s.name); }).join(' · ')+
+        (STATE.warnings.length?'<br><b style="color:var(--warn)">Not found:</b> '+esc(STATE.warnings.join(' · ')):'');
+    } else {
+      li.innerHTML='<b style="color:var(--warn)">No sections loaded yet.</b>';
+    }
+  }
   setMode(CFG.mode);
   $('#settingsModal').classList.add('open');
 }
@@ -2273,6 +2429,11 @@ document.addEventListener('DOMContentLoaded',function(){
   /* settings */
   $('#settingsBtn').addEventListener('click',openSettings);
   $('#cfgCancel').addEventListener('click',closeSettings);
+  $('#cfgFillTabs').addEventListener('click',function(){
+    setMode('gviz');
+    $('#cfgTabs').value='KPIs, Reviews, Surveys, Interns, Apprentices, Training Sessions';
+    toast('Standard tab names filled in — press Save & connect','ok');
+  });
   $('#settingsModal').addEventListener('click',function(e){ if(e.target===this) closeSettings(); });
   $('#personModal').addEventListener('click',function(e){ if(e.target===this) closePersonModal(); });
   document.addEventListener('keydown',function(e){
@@ -2314,5 +2475,5 @@ document.addEventListener('click',function(e){
   if(b) switchPage(b.dataset.open);
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23ecd28ae732160',t:'MTc4NTUyMzk1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23f229a2da1563c',t:'MTc4NTUyNzQ1OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
