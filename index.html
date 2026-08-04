@@ -1003,15 +1003,41 @@ function resolveExcelUrl(raw){
   var host = (u.match(/^https?:\/\/([^/?#]+)/i)||[])[1]||'';
   var h = host.toLowerCase();
 
-  /* OneDrive personal short/long share links -> Microsoft Shares API */
-  if(/(^|\.)1drv\.ms$/.test(h) || /onedrive\.live\.com/.test(h) || /skydrive\.live\.com/.test(h)){
+  /* 1) Modern OneDrive Consumer & Excel Web short links (1drv.ms/x/c/, 1drv.ms/u/c/, 1drv.ms/w/c/, 1drv.ms/b/c/)
+        These are SharePoint-backed consumer links; Microsoft Graph Shares API (api.onedrive.com)
+        returns 401 Unauthorized for /c/ links, so we convert to direct download url. */
+  if(/(^|\.)1drv\.ms$/.test(h) && /\/[xuwb]\/c\//i.test(u)){
+    u = u.replace(/(\/)[xwb](\/c\/)/i, '$1u$2');
+    u = u.replace(/([?&])(nav|web|action|mobileredirect)=[^&]*/gi, '');
+    u = u.replace(/&&+/g, '&').replace(/\?&/g, '?').replace(/[?&]$/, '');
+    if(!/([?&])download=1/i.test(u)){
+      u += (u.indexOf('?') !== -1 ? '&' : '?') + 'download=1';
+    }
+    return u;
+  }
+
+  /* 2) Legacy OneDrive Personal short share links (1drv.ms/x/s!..., 1drv.ms/u/s!...) -> Microsoft Graph Shares API */
+  if(/(^|\.)1drv\.ms$/.test(h) || /skydrive\.live\.com/.test(h)){
     if(/api\.onedrive\.com/i.test(u)) return u;
     return 'https://api.onedrive.com/v1.0/shares/'+oneDriveShareToken(u)+'/root/content';
   }
 
-  /* SharePoint / OneDrive for Business / Office 365 (company.sharepoint.com, company-my.sharepoint.com) */
+  /* 3) OneDrive Personal web links (onedrive.live.com) */
+  if(/onedrive\.live\.com/i.test(h)){
+    if(/\/embed\?/i.test(u)){
+      return u.replace(/\/embed\?/i, '/download?') + '&download=1';
+    }
+    if(!/([?&])download=1/i.test(u)){
+      u = u.replace(/([?&])(nav|web|action|mobileredirect)=[^&]*/gi, '');
+      u = u.replace(/&&+/g, '&').replace(/\?&/g, '?').replace(/[?&]$/, '');
+      return u + (u.indexOf('?') !== -1 ? '&download=1' : '?download=1');
+    }
+    return u;
+  }
+
+  /* 4) SharePoint Online / OneDrive for Business / Office 365 (company.sharepoint.com, company-my.sharepoint.com) */
   if(/(^|\.)sharepoint\.com$/.test(h) || /-my\.sharepoint\.com$/.test(h) || /office365\.com$/.test(h)){
-    /* If it is an address bar URL with Doc.aspx / guestaccess.aspx / WopiFrame.aspx */
+    /* Address bar URLs with Doc.aspx / guestaccess.aspx / WopiFrame.aspx -> download.aspx */
     if(/\/_layouts\/15\/(Doc|guestaccess|WopiFrame|download)\.aspx/i.test(u)){
       u = u.replace(/\/_layouts\/15\/(Doc|guestaccess|WopiFrame)\.aspx/i, '/_layouts/15/download.aspx');
       u = u.replace(/([?&])(action|web|mobileredirect)=[^&]*/gi, '');
@@ -1030,41 +1056,39 @@ function resolveExcelUrl(raw){
     return u;
   }
 
-  /* GitHub blob -> raw.githubusercontent.com */
+  /* 5) GitHub blob -> raw.githubusercontent.com */
   if((h==='github.com'||h==='www.github.com') && /\/blob\//.test(u)){
     return u.replace(/^https?:\/\/(www\.)?github\.com/i,'https://raw.githubusercontent.com').replace('/blob/','/');
   }
 
-  /* Google Drive direct download for .xlsx */
+  /* 6) Google Drive direct download for .xlsx */
   if(/(^|\.)drive\.google\.com$/.test(h) && /\/file\/d\//.test(u)){
     var m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
     if(m) return 'https://drive.google.com/uc?export=download&id=' + m[1];
   }
 
-  /* Dropbox -> force ?dl=1 */
+  /* 7) Dropbox -> force ?dl=1 */
   if(/(^|\.)dropbox\.com$/.test(h)) return u.replace(/[?#].*$/,'')+'?dl=1';
   return u;
 }
 
-/* Multi-stage resilient file downloader with automatic CORS proxy fallback chain */
+/* Multi-stage resilient file downloader: tries direct download first, then CORS proxies */
 async function fetchExcelBuffer(url, useProxy){
   var errors = [];
-  /* 1) First try direct fetch (instant if CORS is allowed or same-origin) */
-  if(!useProxy){
-    try{
-      var r = await withTimeout(fetch(url, {cache:'no-store'}), 14000, 'Direct Excel download');
-      if(r.ok){
-        var buf = await r.arrayBuffer();
-        if(buf && buf.byteLength > 100) return buf;
-      } else {
-        errors.push('Direct HTTP ' + r.status);
-      }
-    }catch(e){
-      errors.push('Direct fetch (' + (e.message || String(e)) + ')');
+  /* 1) ALWAYS try direct download first (instant if CORS is allowed or same-origin) */
+  try{
+    var r = await withTimeout(fetch(url, {cache:'no-store'}), 12000, 'Direct Excel download');
+    if(r.ok){
+      var buf = await r.arrayBuffer();
+      if(buf && buf.byteLength > 100) return buf;
+    } else {
+      errors.push('Direct HTTP ' + r.status);
     }
+  }catch(e){
+    errors.push('Direct fetch (' + (e.message || String(e)) + ')');
   }
 
-  /* 2) Automatically fall back to reliable CORS proxy chain for cross-origin Microsoft 365 links */
+  /* 2) If direct fetch fails due to browser CORS block or useProxy is checked, try reliable CORS proxies */
   var proxies = [
     { name: 'CORSProxy.io', url: 'https://corsproxy.io/?' + encodeURIComponent(url) },
     { name: 'AllOrigins',   url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
@@ -1087,7 +1111,7 @@ async function fetchExcelBuffer(url, useProxy){
   }
 
   throw new Error('Unable to download Excel workbook. Attempts: ' + errors.join('; ') + 
-    ' — Please verify your Microsoft 365 / SharePoint link has "Anyone with the link can view" access enabled.');
+    ' — Please verify in Excel Web (Share -> Link settings) that permissions are set to "Anyone with the link can view".');
 }
 
 async function ensureXLSX(){
@@ -1115,14 +1139,14 @@ async function ensureXLSX(){
 async function loadViaExcel(){
   await ensureXLSX();
   var src = String(CFG.excelUrl||'').trim();
-  if(!src) throw new Error('No Excel link configured. Paste your live Microsoft 365 / Excel (.xlsx) share link in ⚙ settings.');
+  if(!src) throw new Error('No Excel link configured. Paste your live Excel / OneDrive (.xlsx) share link in ⚙ settings.');
   var direct = resolveExcelUrl(src);
   var buf = await fetchExcelBuffer(direct, CFG.excelProxy);
   var wb;
   try{
     wb = XLSX.read(buf, {type:'array'});
   }catch(err){
-    throw new Error('The downloaded file could not be read as an Excel (.xlsx) workbook (' + (err.message||err) + '). Please verify your Microsoft 365 link is shared as "Anyone with the link can view".');
+    throw new Error('The downloaded file could not be read as an Excel (.xlsx) workbook (' + (err.message||err) + '). This usually happens when OneDrive requires a login for the link. In Excel Web, click Share → Share → Link Settings, select "Anyone with the link can view", and copy that link.');
   }
   var sheets = wb.SheetNames.map(function(name){
     var ws = wb.Sheets[name];
@@ -1130,8 +1154,8 @@ async function loadViaExcel(){
     var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true, blankrows:false});
     return { name:name, rows:rows };
   }).filter(function(s){ return s.rows && s.rows.length; });
-  if(!sheets.length) throw new Error('The workbook was downloaded and read from MS 365, but contains no populated worksheets.');
-  return { sheets:sheets, warnings:[], source:'Microsoft 365 / Excel Live Link' };
+  if(!sheets.length) throw new Error('The workbook was downloaded and read from OneDrive/Excel, but contains no populated worksheets.');
+  return { sheets:sheets, warnings:[], source:'Excel / OneDrive Live Link' };
 }
 
 async function loadWorkbook(){
@@ -2793,5 +2817,5 @@ document.addEventListener('click',function(e){
   if(b) switchPage(b.dataset.open);
 });
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25fd18078d24700',t:'MTc4NTg3MDE2Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
