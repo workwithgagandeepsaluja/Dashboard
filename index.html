@@ -454,6 +454,41 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
 .scroll-y::-webkit-scrollbar{width:6px}
 .scroll-y::-webkit-scrollbar-thumb{background:var(--stroke);border-radius:4px}
 
+/* Microsoft 365 / Excel Live Integration UI */
+.ms365-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 13px;border-radius:20px;font-size:.68rem;font-weight:700;
+  background:linear-gradient(135deg,rgba(16,124,65,.18),rgba(31,154,85,.18));
+  color:#3ddc84;border:1px solid rgba(16,124,65,.4);margin-bottom:12px;
+  letter-spacing:.3px;box-shadow:0 2px 10px rgba(16,124,65,.12);
+}
+[data-theme="light"] .ms365-badge{
+  background:linear-gradient(135deg,rgba(16,124,65,.12),rgba(31,154,85,.12));
+  color:#107c41;border-color:rgba(16,124,65,.35);
+}
+.ms365-guide{
+  background:rgba(var(--tint),.04);
+  border:1px solid var(--stroke-soft);
+  border-left:3px solid #107c41;
+  border-radius:var(--r-sm);
+  padding:12px 14px;font-size:.73rem;color:var(--text);
+  line-height:1.6;margin-bottom:14px;
+}
+.ms365-guide b{color:var(--text-2);font-weight:700}
+.ms365-guide li{margin-bottom:5px}
+.ms365-guide li:last-child{margin-bottom:0}
+.ms365-banner{
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+  backdrop-filter:blur(22px) saturate(150%);
+  border:1px solid var(--stroke);
+  border-left:4px solid #107c41;
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  padding:18px 22px;
+  animation:pop .5s var(--ease) both;
+}
+
 /* responsive */
 @media (max-width:980px){
   .brand-txt .t2{display:none}
@@ -511,8 +546,8 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
   <div class="nav-actions">
     <span class="pill hide-sm" id="statusPill"><span class="dot off" id="statusDot"></span><span id="statusText">Not connected</span></span>
     <input type="date" class="date-in" id="datePicker" aria-label="Select reporting date">
-    <button class="ibtn" id="refreshBtn" title="Reload data from Google Sheets">↻ <span class="hide-sm">Refresh</span></button>
-    <button class="ibtn" id="settingsBtn" title="Google Sheet connection settings">⚙</button>
+    <button class="ibtn" id="refreshBtn" title="Reload data from the connected source">↻ <span class="hide-sm">Refresh</span></button>
+    <button class="ibtn" id="settingsBtn" title="Data connection settings">⚙</button>
     <button class="ibtn" id="themeBtn" title="Toggle theme">☀</button>
   </div>
 
@@ -587,13 +622,14 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
 <!-- ══════════ SETTINGS MODAL ══════════ -->
 <div class="modal-bg" id="settingsModal">
   <div class="modal glass">
-    <h3>Google Sheet Connection</h3>
-    <p class="hint">Paste your Google Sheet link below. Set the sheet to <b>“Anyone with the link → Viewer”</b> (or File → Share → Publish to web). Every tab in the workbook is discovered automatically — add a new tab later and a new section appears here on its own.</p>
+    <h3>Data Connection Settings</h3>
+    <p class="hint">Connect your live L&amp;D spreadsheet below. <b>Microsoft 365 / Excel Link</b> is the primary connection mode — paste any share link from <b>Excel Online, SharePoint, or OneDrive for Business</b> and all your worksheets will be automatically detected and synced live.</p>
 
     <div class="field">
       <label>Connection mode</label>
       <div class="seg" id="modeSeg">
-        <button data-mode="gviz">Sheet link</button>
+        <button data-mode="excel" class="on">MS 365 / Excel Link</button>
+        <button data-mode="gviz">Google Sheets</button>
         <button data-mode="apikey">API key</button>
         <button data-mode="script">Apps Script</button>
         <button data-mode="demo">Demo data</button>
@@ -601,6 +637,30 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
       <div class="sub" id="modeHint"></div>
     </div>
 
+    <div class="field" data-for="excel">
+      <div class="ms365-badge">✨ Microsoft 365 Enterprise · SharePoint · OneDrive · Live Excel Sync</div>
+      <div class="ms365-guide">
+        <b>How to connect your Microsoft 365 live workbook:</b>
+        <ol style="margin:6px 0 0 16px;padding:0;line-height:1.6">
+          <li>Open your L&amp;D Excel workbook in <b>Excel Online</b>, <b>SharePoint</b>, or <b>OneDrive for Business</b>.</li>
+          <li>Click <b>Share</b> at the top right &rarr; <b>Copy Link</b>. Ensure access is set to <i>"Anyone with the link can view"</i> (or your organizational share link).</li>
+          <li>Paste the link below. Click <b>⚡ Test Live Connection</b> to verify and discover your worksheets instantly.</li>
+        </ol>
+      </div>
+      <label style="margin-top:4px">MS 365 / Excel (.xlsx) Live Share Link</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="cfgExcelUrl" placeholder="https://company-my.sharepoint.com/:x:/g/personal/…  ·  https://1drv.ms/x/s!…" style="flex:1">
+        <button class="ibtn" id="cfgTestExcelBtn" type="button" title="Test connection and discover worksheets">⚡ Test Link</button>
+      </div>
+      <div id="cfgTestResult" style="margin-top:8px"></div>
+      <div class="sub">Supported: <b>SharePoint Online</b>, <b>OneDrive for Business</b>, <b>OneDrive</b> (1drv.ms), Dropbox, GitHub, or any direct <b>.xlsx</b> URL. The workbook is fetched directly and read securely in your browser.</div>
+    </div>
+    <div class="field" data-for="excel">
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-weight:600;color:var(--text);margin-bottom:0">
+        <input type="checkbox" id="cfgExcelProxy" style="width:auto;height:auto;margin:0" checked> Automatic CORS-proxy fallback (Recommended for MS 365 &amp; SharePoint)
+      </label>
+      <div class="sub">Automatically routes cross-origin Microsoft 365 share links if your browser blocks direct cross-domain requests.</div>
+    </div>
     <div class="field" data-for="gviz apikey">
       <label>Google Sheet URL or ID</label>
       <input type="text" id="cfgSheetId" placeholder="https://docs.google.com/spreadsheets/d/1AbC…/edit">
@@ -650,12 +710,14 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
    Anything saved in the settings panel overrides these defaults.
 ══════════════════════════════════════════════════════════════════════════ */
 var DEFAULT_CONFIG = {
-  mode        : 'gviz',   // 'gviz' | 'apikey' | 'script' | 'demo'
-  sheetId     : '',       // <-- paste the full Sheet URL or just the ID here
+  mode        : 'excel',  // 'excel' | 'gviz' | 'apikey' | 'script' | 'demo'
+  sheetId     : '',       // Google Sheet URL or ID (gviz / apikey)
   apiKey      : '',       // only for mode 'apikey'
   scriptUrl   : '',       // only for mode 'script'
-  tabs        : [],       // optional explicit tab names for 'gviz'
-  refreshMs   : 300000
+  excelUrl    : '',       // <-- paste a LIVE Excel (.xlsx) share / download link here
+  excelProxy  : true,     // enabled by default for MS 365 / SharePoint CORS resilience
+  tabs        : [],       // optional explicit tab names
+  refreshMs   : 60000     // 1 minute live sync for MS 365 AutoSave
 };
 
 /* ═══════════════ small utilities ═══════════════ */
@@ -919,8 +981,162 @@ async function loadViaScript(){
   return { sheets:sheets, warnings:[], source:'Apps Script Web App' };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   MICROSOFT 365 / EXCEL (.xlsx) LIVE LINK ENGINE
+   Handles:
+   • SharePoint Online & OneDrive for Business share links (/:x:/g/, /:x:/s/, etc.)
+   • Address bar URLs (Doc.aspx, guestaccess.aspx, WopiFrame.aspx -> download.aspx)
+   • OneDrive personal share links (1drv.ms, onedrive.live.com -> MS Graph Shares API)
+   • Dropbox, GitHub, Google Drive .xlsx, and direct .xlsx download URLs
+   • Automatic CORS-proxy fallback chain for cross-origin browser requests
+══════════════════════════════════════════════════════════════════════════ */
+function oneDriveShareToken(url){
+  var b64='';
+  try{ b64=btoa(unescape(encodeURIComponent(url))); }catch(e){ b64=btoa(url); }
+  return 'u!'+b64.replace(/=/g,'').replace(/\//g,'_').replace(/\+/g,'-');
+}
+
+/* Turn any Microsoft 365, SharePoint, OneDrive, or Excel share link into a direct download URL. */
+function resolveExcelUrl(raw){
+  var u = String(raw||'').trim();
+  if(!u) return u;
+  var host = (u.match(/^https?:\/\/([^/?#]+)/i)||[])[1]||'';
+  var h = host.toLowerCase();
+
+  /* OneDrive personal short/long share links -> Microsoft Shares API */
+  if(/(^|\.)1drv\.ms$/.test(h) || /onedrive\.live\.com/.test(h) || /skydrive\.live\.com/.test(h)){
+    if(/api\.onedrive\.com/i.test(u)) return u;
+    return 'https://api.onedrive.com/v1.0/shares/'+oneDriveShareToken(u)+'/root/content';
+  }
+
+  /* SharePoint / OneDrive for Business / Office 365 (company.sharepoint.com, company-my.sharepoint.com) */
+  if(/(^|\.)sharepoint\.com$/.test(h) || /-my\.sharepoint\.com$/.test(h) || /office365\.com$/.test(h)){
+    /* If it is an address bar URL with Doc.aspx / guestaccess.aspx / WopiFrame.aspx */
+    if(/\/_layouts\/15\/(Doc|guestaccess|WopiFrame|download)\.aspx/i.test(u)){
+      u = u.replace(/\/_layouts\/15\/(Doc|guestaccess|WopiFrame)\.aspx/i, '/_layouts/15/download.aspx');
+      u = u.replace(/([?&])(action|web|mobileredirect)=[^&]*/gi, '');
+      u = u.replace(/&&+/g, '&').replace(/\?&/g, '?').replace(/[?&]$/, '');
+      if(!/([?&])SourceUrl=/i.test(u) && !/([?&])download=1/i.test(u)){
+        u += (u.indexOf('?') !== -1 ? '&' : '?') + 'download=1';
+      }
+      return u;
+    }
+    /* Standard SharePoint share links (/:x:/g/, /:x:/s/, /:x:/r/, etc.) or direct paths */
+    if(!/([?&])download=1/i.test(u)){
+      u = u.replace(/([?&])(web=1|action=[a-z]+|mobileredirect=[a-z]+)/gi, '');
+      u = u.replace(/&&+/g, '&').replace(/\?&/g, '?').replace(/[?&]$/, '');
+      return u + (u.indexOf('?') !== -1 ? '&download=1' : '?download=1');
+    }
+    return u;
+  }
+
+  /* GitHub blob -> raw.githubusercontent.com */
+  if((h==='github.com'||h==='www.github.com') && /\/blob\//.test(u)){
+    return u.replace(/^https?:\/\/(www\.)?github\.com/i,'https://raw.githubusercontent.com').replace('/blob/','/');
+  }
+
+  /* Google Drive direct download for .xlsx */
+  if(/(^|\.)drive\.google\.com$/.test(h) && /\/file\/d\//.test(u)){
+    var m = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) return 'https://drive.google.com/uc?export=download&id=' + m[1];
+  }
+
+  /* Dropbox -> force ?dl=1 */
+  if(/(^|\.)dropbox\.com$/.test(h)) return u.replace(/[?#].*$/,'')+'?dl=1';
+  return u;
+}
+
+/* Multi-stage resilient file downloader with automatic CORS proxy fallback chain */
+async function fetchExcelBuffer(url, useProxy){
+  var errors = [];
+  /* 1) First try direct fetch (instant if CORS is allowed or same-origin) */
+  if(!useProxy){
+    try{
+      var r = await withTimeout(fetch(url, {cache:'no-store'}), 14000, 'Direct Excel download');
+      if(r.ok){
+        var buf = await r.arrayBuffer();
+        if(buf && buf.byteLength > 100) return buf;
+      } else {
+        errors.push('Direct HTTP ' + r.status);
+      }
+    }catch(e){
+      errors.push('Direct fetch (' + (e.message || String(e)) + ')');
+    }
+  }
+
+  /* 2) Automatically fall back to reliable CORS proxy chain for cross-origin Microsoft 365 links */
+  var proxies = [
+    { name: 'CORSProxy.io', url: 'https://corsproxy.io/?' + encodeURIComponent(url) },
+    { name: 'AllOrigins',   url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
+    { name: 'CodeTabs',     url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url) }
+  ];
+
+  for(var i=0; i<proxies.length; i++){
+    var p = proxies[i];
+    try{
+      var pr = await withTimeout(fetch(p.url, {cache:'no-store'}), 20000, p.name);
+      if(pr.ok){
+        var pbuf = await pr.arrayBuffer();
+        if(pbuf && pbuf.byteLength > 100) return pbuf;
+      } else {
+        errors.push(p.name + ' HTTP ' + pr.status);
+      }
+    }catch(pe){
+      errors.push(p.name + ' (' + (pe.message || String(pe)) + ')');
+    }
+  }
+
+  throw new Error('Unable to download Excel workbook. Attempts: ' + errors.join('; ') + 
+    ' — Please verify your Microsoft 365 / SharePoint link has "Anyone with the link can view" access enabled.');
+}
+
+async function ensureXLSX(){
+  if(typeof XLSX !== 'undefined') return;
+  var cdns = [
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ];
+  for(var i=0; i<cdns.length; i++){
+    try{
+      await new Promise(function(res, rej){
+        var s = document.createElement('script');
+        s.src = cdns[i];
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+      if(typeof XLSX !== 'undefined') return;
+    }catch(e){}
+  }
+  throw new Error('SheetJS (Excel parser) library failed to load — check your internet connection.');
+}
+
+async function loadViaExcel(){
+  await ensureXLSX();
+  var src = String(CFG.excelUrl||'').trim();
+  if(!src) throw new Error('No Excel link configured. Paste your live Microsoft 365 / Excel (.xlsx) share link in ⚙ settings.');
+  var direct = resolveExcelUrl(src);
+  var buf = await fetchExcelBuffer(direct, CFG.excelProxy);
+  var wb;
+  try{
+    wb = XLSX.read(buf, {type:'array'});
+  }catch(err){
+    throw new Error('The downloaded file could not be read as an Excel (.xlsx) workbook (' + (err.message||err) + '). Please verify your Microsoft 365 link is shared as "Anyone with the link can view".');
+  }
+  var sheets = wb.SheetNames.map(function(name){
+    var ws = wb.Sheets[name];
+    if(!ws) return {name:name, rows:[]};
+    var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true, blankrows:false});
+    return { name:name, rows:rows };
+  }).filter(function(s){ return s.rows && s.rows.length; });
+  if(!sheets.length) throw new Error('The workbook was downloaded and read from MS 365, but contains no populated worksheets.');
+  return { sheets:sheets, warnings:[], source:'Microsoft 365 / Excel Live Link' };
+}
+
 async function loadWorkbook(){
   if(CFG.mode==='demo') { await sleep(420); return { sheets:DEMO_SHEETS(), warnings:[], source:'Demo data' }; }
+  if(CFG.mode==='excel')  return loadViaExcel();
   if(CFG.mode==='script') return loadViaScript();
   if(CFG.mode==='apikey') return loadViaApiKey();
   return loadViaGviz();
@@ -1135,9 +1351,15 @@ async function loadData(opts){
 }
 
 function setStatus(kind){
-  var d=$('#statusDot'), t=$('#statusText');
-  if(kind==='loading'){ d.className='dot off'; t.innerHTML='<span class="spin"></span>'; return; }
-  if(kind==='live'){ d.className='dot live'; t.textContent = CFG.mode==='demo'?'Demo data':'Live · '+STATE.fetchedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); return; }
+  var d=$('#statusDot'), t=$('#statusText'), p=$('#statusPill');
+  if(kind==='loading'){ d.className='dot off'; t.innerHTML='<span class="spin"></span> Connecting…'; return; }
+  if(kind==='live'){
+    d.className='dot live';
+    var srcLabel = CFG.mode==='excel' ? 'MS 365 Excel Live' : (CFG.mode==='demo' ? 'Demo data' : 'Google Sheets Live');
+    t.textContent = srcLabel + ' · ' + STATE.fetchedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    if(p) p.title = 'Source: ' + STATE.source + ' (Auto-refresh every ' + (Math.round(CFG.refreshMs/60000) || '0') + 'm)';
+    return;
+  }
   if(kind==='error'){ d.className='dot err'; t.textContent='Connection error'; return; }
   d.className='dot off'; t.textContent='Not connected';
 }
@@ -1257,6 +1479,45 @@ function renderAll(){
 
   /* body */
   if(isOverview){
+    /* MS 365 live connection banner when viewing demo data */
+    if(CFG.mode==='demo' || STATE.source==='Demo data'){
+      var banner = document.createElement('div');
+      banner.className = 'ms365-banner card';
+      banner.style.marginBottom = '20px';
+      banner.style.borderLeft = '4px solid #107c41';
+      banner.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
+        '<div style="display:flex;align-items:center;gap:14px;min-width:280px;flex:1">' +
+          '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#107c41,#1f9a55);display:grid;place-items:center;font-size:1.45rem;color:#fff;box-shadow:0 4px 14px rgba(16,124,65,.35);flex:0 0 44px">📊</div>' +
+          '<div>' +
+            '<div style="font-size:.9rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+              'Connect your Microsoft 365 Live Excel Workbook' +
+              '<span class="badge" style="background:rgba(16,124,65,.22);color:#3ddc84;border-color:rgba(16,124,65,.45);letter-spacing:.4px">MS 365 Premium Ready</span>' +
+            '</div>' +
+            '<div style="font-size:.74rem;color:var(--muted);margin-top:4px;max-width:760px;line-height:1.55">' +
+              'You are currently viewing sample L&amp;D data. Connect your live <b>Microsoft 365 / SharePoint / OneDrive</b> Excel (.xlsx) share link to sync real-time KPIs, Guest Reviews, Intern Roster, and Training Sessions automatically.' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          '<button class="ibtn primary" id="bannerConnectBtn" style="background:linear-gradient(135deg,#107c41,#1f9a55);color:#fff;border-color:transparent;box-shadow:0 3px 12px rgba(16,124,65,.3)">⚡ Link MS 365 Excel Sheet &rarr;</button>' +
+          '<button class="ibtn" id="bannerGuideBtn">How to share</button>' +
+        '</div>' +
+      '</div>';
+      page.appendChild(banner);
+      setTimeout(function(){
+        var bConn = $('#bannerConnectBtn', banner);
+        if(bConn) bConn.addEventListener('click', function(){
+          setMode('excel');
+          openSettings();
+        });
+        var bGuide = $('#bannerGuideBtn', banner);
+        if(bGuide) bGuide.addEventListener('click', function(){
+          setMode('excel');
+          openSettings();
+        });
+      }, 10);
+    }
+
     var kpis=STATE.sections.filter(function(s){ return s.type==='kpi'; });
     if(!kpis.length){
       page.appendChild(alertEl('info','ℹ','No MTD / YTD section detected',
@@ -2367,15 +2628,18 @@ function filterSent(){
    SETTINGS MODAL
 ══════════════════════════════════════════════════════════════════════════ */
 var MODE_HINTS={
-  gviz  :'Simplest setup. Share the sheet as “Anyone with the link → Viewer”, paste the URL, and optionally list the tab names.',
-  apikey:'Best auto-discovery: every tab (including ones you add later) is found automatically via the Google Sheets API.',
-  script:'Works with fully private sheets and never exposes a key. Deploy the included apps-script.gs as a Web App.',
+  gviz  :'Simplest Google Sheets setup. Share as “Anyone with the link → Viewer”, paste the URL, and optionally list the tab names.',
+  excel :'Connect a live Excel (.xlsx) file via its share/download link — OneDrive, SharePoint, Dropbox, GitHub or a direct URL. Every worksheet becomes a dashboard section automatically.',
+  apikey:'Best Google Sheets auto-discovery: every tab (including ones you add later) is found automatically via the Google Sheets API.',
+  script:'Works with fully private Google sheets and never exposes a key. Deploy the included apps-script.gs as a Web App.',
   demo  :'Sample data so you can explore the layout without connecting anything.'
 };
 function openSettings(){
   $('#cfgSheetId').value=CFG.sheetId||'';
   $('#cfgApiKey').value=CFG.apiKey||'';
   $('#cfgScriptUrl').value=CFG.scriptUrl||'';
+  $('#cfgExcelUrl').value=CFG.excelUrl||'';
+  $('#cfgExcelProxy').checked=!!CFG.excelProxy;
   $('#cfgTabs').value=(CFG.tabs||[]).join(', ');
   $('#cfgRefresh').value=String(CFG.refreshMs||0);
   var li=$('#cfgLoaded');
@@ -2436,10 +2700,56 @@ document.addEventListener('DOMContentLoaded',function(){
   $('#settingsBtn').addEventListener('click',openSettings);
   $('#cfgCancel').addEventListener('click',closeSettings);
   $('#cfgFillTabs').addEventListener('click',function(){
-    setMode('gviz');
-    $('#cfgTabs').value='KPIs, Reviews, Surveys, Interns, Apprentices, Training Sessions';
-    toast('Standard tab names filled in — press Save & connect','ok');
+    if(CFG.mode === 'excel' || ($$('#modeSeg button.on')[0] && $$('#modeSeg button.on')[0].dataset.mode === 'excel')){
+      toast('Microsoft 365 Excel link discovers all workbook tabs automatically! No manual tab names required.','ok');
+    } else {
+      setMode('gviz');
+      $('#cfgTabs').value='KPIs, Reviews, Surveys, Interns, Apprentices, Training Sessions';
+      toast('Standard tab names filled in — press Save & connect','ok');
+    }
   });
+
+  /* Test MS 365 live Excel link connection */
+  var testBtn = $('#cfgTestExcelBtn');
+  if(testBtn){
+    testBtn.addEventListener('click', async function(){
+      var btn = this;
+      var resEl = $('#cfgTestResult');
+      var url = $('#cfgExcelUrl').value.trim();
+      if(!url){
+        resEl.innerHTML = '<div class="alert warn" style="margin:0;padding:10px 12px"><span class="ic">⚠</span><div>Please paste a Microsoft 365 / Excel share link first.</div></div>';
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin"></span> Testing…';
+      resEl.innerHTML = '<div class="alert info" style="margin:0;padding:10px 12px"><span class="ic">⏳</span><div>Connecting to Microsoft 365 live workbook and inspecting worksheets…</div></div>';
+
+      try{
+        var oldUrl = CFG.excelUrl;
+        var oldProxy = CFG.excelProxy;
+        CFG.excelUrl = url;
+        CFG.excelProxy = $('#cfgExcelProxy').checked;
+        var wb = await loadViaExcel();
+        CFG.excelUrl = oldUrl;
+        CFG.excelProxy = oldProxy;
+
+        var sheetNames = wb.sheets.map(function(s){ return s.name; });
+        var totalRows = wb.sheets.reduce(function(acc, s){ return acc + (s.rows ? s.rows.length : 0); }, 0);
+        resEl.innerHTML = '<div class="alert" style="margin:0;padding:10px 12px;background:rgba(61,220,132,.14);border-color:rgba(61,220,132,.4);color:var(--good)">' +
+          '<span class="ic">✓</span><div><b>MS 365 Connection Successful!</b><div style="font-size:.73rem;color:var(--text);margin-top:3px">' +
+          'Discovered <b>' + sheetNames.length + '</b> worksheet' + (sheetNames.length > 1 ? 's' : '') + ': <b>' + esc(sheetNames.join(', ')) + '</b> (' + totalRows + ' total rows). Click <b>Save &amp; connect</b> below to load.</div></div></div>';
+        toast('MS 365 link tested — ' + sheetNames.length + ' worksheets found!', 'ok');
+      }catch(err){
+        resEl.innerHTML = '<div class="alert error" style="margin:0;padding:10px 12px">' +
+          '<span class="ic">⛔</span><div><b>Connection Test Failed:</b> ' + esc(err.message || String(err)) +
+          '<div style="font-size:.72rem;color:var(--muted);margin-top:4px">Ensure the link is shared as <i>"Anyone with the link can view"</i> and try keeping CORS proxy fallback enabled.</div></div></div>';
+        toast('Could not reach that Excel link', 'bad');
+      }finally{
+        btn.disabled = false;
+        btn.textContent = '⚡ Test Link';
+      }
+    });
+  }
   $('#settingsModal').addEventListener('click',function(e){ if(e.target===this) closeSettings(); });
   $('#personModal').addEventListener('click',function(e){ if(e.target===this) closePersonModal(); });
   document.addEventListener('keydown',function(e){
@@ -2454,16 +2764,18 @@ document.addEventListener('DOMContentLoaded',function(){
     CFG.sheetId=extractSheetId($('#cfgSheetId').value);
     CFG.apiKey=$('#cfgApiKey').value.trim();
     CFG.scriptUrl=$('#cfgScriptUrl').value.trim();
+    CFG.excelUrl=$('#cfgExcelUrl').value.trim();
+    CFG.excelProxy=$('#cfgExcelProxy').checked;
     CFG.tabs=$('#cfgTabs').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
     CFG.refreshMs=parseInt($('#cfgRefresh').value,10)||0;
     saveCfg(); closeSettings(); scheduleRefresh(); loadData();
   });
 
   /* first paint */
-  if(CFG.mode!=='demo' && !CFG.sheetId && !CFG.scriptUrl){
+  if(CFG.mode!=='demo' && !CFG.sheetId && !CFG.scriptUrl && !CFG.excelUrl){
     // nothing configured yet → show demo so the dashboard is never blank, and nudge the user
     CFG.mode='demo';
-    setTimeout(function(){ toast('No Google Sheet linked yet — showing demo data. Click ⚙ to connect.','bad'); },900);
+    setTimeout(function(){ toast('No MS 365 link connected yet — showing demo data. Click ⚙ or "Link MS 365 Excel Sheet" to connect.','bad'); },900);
   }
   scheduleRefresh();
   loadData();
@@ -2481,5 +2793,5 @@ document.addEventListener('click',function(e){
   if(b) switchPage(b.dataset.open);
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23f5777aa27d220',t:'MTc4NTUyOTYyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
