@@ -489,6 +489,101 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
   animation:pop .5s var(--ease) both;
 }
 
+/* Interns Roster Table & Month Highlighting */
+th.cur-month, td.cur-month{
+  background:var(--gold-dim)!important;
+  border-left:2px solid var(--gold)!important;
+  border-right:2px solid var(--gold)!important;
+}
+th.cur-month{
+  color:var(--gold)!important;
+  font-weight:800!important;
+}
+.dept-badge{
+  display:inline-block;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700;white-space:nowrap;
+  background:rgba(var(--tint),.08);color:var(--text);border:1px solid var(--stroke-soft);
+}
+.dept-badge.hk{background:rgba(61,220,132,.14);color:var(--good);border-color:rgba(61,220,132,.35)}
+.dept-badge.fo{background:rgba(107,179,240,.14);color:var(--accent);border-color:rgba(107,179,240,.35)}
+.dept-badge.fb{background:rgba(245,196,81,.15);color:var(--warn);border-color:rgba(245,196,81,.35)}
+.dept-badge.culinary{background:rgba(255,107,107,.14);color:var(--bad);border-color:rgba(255,107,107,.35)}
+.dept-badge.laundry{background:rgba(176,133,245,.14);color:var(--violet);border-color:rgba(176,133,245,.35)}
+
+/* Interns Roster Sub-Tabs & Department Demand Cards */
+.roster-subtabs{
+  display:flex;gap:6px;padding:4px;border-radius:12px;
+  background:rgba(var(--tint),.05);border:1px solid var(--stroke-soft);
+  margin-bottom:14px;overflow-x:auto;scrollbar-width:none;
+}
+.roster-subtab{
+  background:none;border:0;color:var(--muted);font-family:inherit;font-size:.74rem;font-weight:700;
+  padding:7px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:var(--t);
+  display:inline-flex;align-items:center;gap:6px;
+}
+.roster-subtab:hover{color:var(--text);background:rgba(var(--tint),.05)}
+.roster-subtab.on{
+  background:var(--glass-hover);color:var(--text-2);box-shadow:0 2px 8px rgba(0,0,0,.2);
+  border:1px solid var(--stroke);
+}
+.roster-subtab .cnt{
+  font-size:.65rem;padding:2px 7px;border-radius:10px;background:rgba(var(--tint),.08);color:var(--muted);
+}
+.roster-subtab.on .cnt{background:var(--gold-dim);color:var(--gold)}
+
+/* Month Strip */
+.month-strip{
+  display:flex;gap:7px;overflow-x:auto;padding:4px 0 14px;margin-bottom:14px;scrollbar-width:thin;
+}
+.m-chip{
+  flex:0 0 auto;padding:7px 15px;border-radius:20px;font-size:.73rem;font-weight:700;cursor:pointer;
+  background:rgba(var(--tint),.05);border:1px solid var(--stroke-soft);color:var(--muted);
+  transition:var(--t);font-family:inherit;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.m-chip:hover{color:var(--text);background:var(--glass-hover);transform:translateY(-1px)}
+.m-chip.on{
+  background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#14141c;border-color:transparent;
+  box-shadow:0 4px 14px var(--gold-dim);
+}
+[data-theme="light"] .m-chip.on{color:#fff}
+
+/* Department Demand Cards Grid */
+.dept-demand-grid{
+  display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));margin-bottom:18px;
+}
+.dept-card{
+  background:var(--glass);border:1px solid var(--stroke);border-radius:var(--r);padding:13px 15px;
+  position:relative;overflow:hidden;transition:var(--t);cursor:pointer;
+}
+.dept-card:hover{transform:translateY(-2px);background:var(--glass-hover);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.dept-card.over-limit{
+  background:rgba(255,107,107,.11);border-color:rgba(255,107,107,.45);
+  box-shadow:0 0 18px rgba(255,107,107,.2);
+}
+.dept-card.active-filter{
+  outline:2px solid var(--gold);outline-offset:2px;
+}
+.dept-card-title{font-size:.76rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dept-card-num{font-size:1.45rem;font-weight:800;color:var(--text-2);margin:6px 0 4px;font-variant-numeric:tabular-nums;line-height:1}
+.dept-card-sub{font-size:.68rem;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:6px}
+
+/* Table Over-Limit Cell Highlight */
+td.over-limit-cell{
+  background:rgba(255,107,107,.14)!important;
+  border:1px solid rgba(255,107,107,.4)!important;
+}
+.dept-badge.over-limit{
+  background:rgba(255,107,107,.22)!important;
+  color:#ff6b6b!important;
+  border:1px solid #ff6b6b!important;
+  box-shadow:0 0 10px rgba(255,107,107,.35);
+}
+.alert-icon{
+  display:inline-block;margin-left:5px;padding:1px 5px;border-radius:5px;
+  background:#ff6b6b;color:#14141c;font-size:.56rem;font-weight:800;letter-spacing:.3px;
+  text-transform:uppercase;
+}
+
 /* responsive */
 @media (max-width:980px){
   .brand-txt .t2{display:none}
@@ -628,8 +723,8 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
     <div class="field">
       <label>Connection mode</label>
       <div class="seg" id="modeSeg">
-        <button data-mode="excel" class="on">MS 365 / Excel Link</button>
-        <button data-mode="gviz">Google Sheets</button>
+        <button data-mode="gviz" class="on">Google Sheets</button>
+        <button data-mode="excel">MS 365 / Excel Link</button>
         <button data-mode="apikey">API key</button>
         <button data-mode="script">Apps Script</button>
         <button data-mode="demo">Demo data</button>
@@ -640,12 +735,15 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
     <div class="field" data-for="excel">
       <div class="ms365-badge">✨ Microsoft 365 Enterprise · SharePoint · OneDrive · Live Excel Sync</div>
       <div class="ms365-guide">
-        <b>How to connect your Microsoft 365 live workbook:</b>
-        <ol style="margin:6px 0 0 16px;padding:0;line-height:1.6">
-          <li>Open your L&amp;D Excel workbook in <b>Excel Online</b>, <b>SharePoint</b>, or <b>OneDrive for Business</b>.</li>
-          <li>Click <b>Share</b> at the top right &rarr; <b>Copy Link</b>. Ensure access is set to <i>"Anyone with the link can view"</i> (or your organizational share link).</li>
-          <li>Paste the link below. Click <b>⚡ Test Live Connection</b> to verify and discover your worksheets instantly.</li>
-        </ol>
+        <b>How to connect your live Excel sheet:</b>
+        <div style="margin-top:6px">
+          <b style="color:var(--gold)">1) Free Personal Microsoft Account (Excel Web / OneDrive):</b><br>
+          • Standard <code>1drv.ms/x/c/</code> links require a Microsoft account sign-in. To sync live data without logging in: click <b>File &rarr; Share &rarr; Embed</b>, click <b>Generate</b>, and paste that Embed URL below!
+        </div>
+        <div style="margin-top:8px">
+          <b style="color:#3ddc84">2) Microsoft 365 Enterprise / SharePoint / Work Account:</b><br>
+          • Click <b>Share</b> (top right) &rarr; <b>Copy Link</b> (with <i>"Anyone with the link can view"</i> enabled) and paste it below.
+        </div>
       </div>
       <label style="margin-top:4px">MS 365 / Excel (.xlsx) Live Share Link</label>
       <div style="display:flex;gap:8px;align-items:center">
@@ -667,7 +765,7 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
     </div>
     <div class="field" data-for="gviz">
       <label>Tab names <span style="text-transform:none;font-weight:500">(comma separated — optional)</span></label>
-      <input type="text" id="cfgTabs" placeholder="KPIs, Reviews, Surveys, Interns, Apprentices, Training Sessions">
+      <input type="text" id="cfgTabs" placeholder="KPIs, Interns Roster, Reviews, Training Sessions, Surveys, Apprentices">
       <div id="cfgLoaded" class="sub"></div>
       <div class="sub">Leave blank to auto-discover. Without an API key, discovery probes common tab names, so listing them here is the most reliable option.</div>
     </div>
@@ -710,14 +808,14 @@ tbody tr.is-click:hover td:last-child::after{opacity:1;color:var(--gold);right:7
    Anything saved in the settings panel overrides these defaults.
 ══════════════════════════════════════════════════════════════════════════ */
 var DEFAULT_CONFIG = {
-  mode        : 'excel',  // 'excel' | 'gviz' | 'apikey' | 'script' | 'demo'
+  mode        : 'gviz',   // 'gviz' | 'excel' | 'apikey' | 'script' | 'demo'
   sheetId     : '',       // Google Sheet URL or ID (gviz / apikey)
   apiKey      : '',       // only for mode 'apikey'
   scriptUrl   : '',       // only for mode 'script'
   excelUrl    : '',       // <-- paste a LIVE Excel (.xlsx) share / download link here
   excelProxy  : true,     // enabled by default for MS 365 / SharePoint CORS resilience
   tabs        : [],       // optional explicit tab names
-  refreshMs   : 60000     // 1 minute live sync for MS 365 AutoSave
+  refreshMs   : 60000     // 1 minute live sync
 };
 
 /* ═══════════════ small utilities ═══════════════ */
@@ -872,7 +970,9 @@ function classify(header){
    FETCH LAYER — three ways of reaching the workbook
 ══════════════════════════════════════════════════════════════════════════ */
 var COMMON_TABS = ['KPI','KPIs','Data','Dashboard','Summary','Metrics','Overview','Training','Trainings',
-  'Training Sessions','Sessions','Interns','Intern','Internship','Interns Data','Intern Data',
+  'Training Sessions','Sessions','Interns Roster','Intern Demand','Department Demand','Demand','Intern Limits','Limits',
+  'interns roster','Intern Roster','Interns Table','Intern Roster Table',
+  'Roster','Interns Rotation','Rotation','Interns','Intern','Internship','Interns Data','Intern Data',
   'Apprentices','Apprentice','Apprenticeship','Apprentices Data','Apprentice Data','Trainees','Trainee',
   'Attendance','Feedback','Reviews','Guest Reviews','Surveys','Guest Surveys','GSTS',
   'NPS','LQA','L&D','LD','MM','MM Report','Budget','Departments','Staff','Trainers','Sheet1'];
@@ -1146,7 +1246,7 @@ async function loadViaExcel(){
   try{
     wb = XLSX.read(buf, {type:'array'});
   }catch(err){
-    throw new Error('The downloaded file could not be read as an Excel (.xlsx) workbook (' + (err.message||err) + '). This usually happens when OneDrive requires a login for the link. In Excel Web, click Share → Share → Link Settings, select "Anyone with the link can view", and copy that link.');
+    throw new Error('The file downloaded from your link returned an HTML page instead of an Excel (.xlsx) workbook (' + (err.message||err) + '). Because free personal OneDrive accounts block cross-origin browser downloads, standard 1drv.ms links return HTML error pages. For reliable live-syncing in browser apps, upload your sheet to Google Sheets ("Anyone with the link -> Viewer") or a CORS-enabled file server.');
   }
   var sheets = wb.SheetNames.map(function(name){
     var ws = wb.Sheets[name];
@@ -1267,7 +1367,11 @@ function buildSection(sheet){
                     return /name$/.test(n) && !NOT_PERSON.test(n);
                   })[0];
   var statusCol2= findCol(/^(status|state|stage|currentstatus|trainingstatus)$/);
-  var isRoster  = !isKPI && !isReviews && !!(personCol && statusCol2);
+  var isInternsRoster = !isKPI && !isReviews && (
+    /(intern|roster|apprentice|trainee|rotation)/i.test(sheet.name) ||
+    (personCol && (findCol(/^(collegename|college|institute|university|school)$/) || findCol(/^(mobileno|mobile|phone|contact|startdate|enddate)$/)))
+  );
+  var isRoster  = !isKPI && !isReviews && !isInternsRoster && !!(personCol && statusCol2);
 
   var dates = uniq(records.map(function(r){ return r.__date; }).filter(Boolean)).sort();
 
@@ -1275,11 +1379,11 @@ function buildSection(sheet){
      daily log — they must show in full on every date. Any date column they have
      (DOJ, Start Date…) stays visible as an ordinary field, but is never used to
      filter, to build date chips, or to trigger a "no data for this date" error. */
-  if(isRoster){ dateCol=null; dates=[]; records.forEach(function(r){ r.__date=''; }); }
+  if(isRoster || isInternsRoster){ dateCol=null; dates=[]; records.forEach(function(r){ r.__date=''; }); }
 
   return {
     name:sheet.name, id:slug(sheet.name),
-    type: isKPI?'kpi':(isReviews?'reviews':(isRoster?'roster':'table')),
+    type: isKPI?'kpi':(isReviews?'reviews':(isInternsRoster?'interns_roster':(isRoster?'roster':'table'))),
     columns:columns, records:records, dates:dates,
     dateCol:dateCol, mtdCol:mtdCol, ytdCol:ytdCol, metricCol:metricCol,
     unitCol:unitCol, targetCol:targetCol, valueCol:valueCol,
@@ -1324,11 +1428,28 @@ function DEMO_SHEETS(){
    ['Guest Recovery Skills','A. Mehta','F&B','Completed',18,93]].forEach(function(s,i){
     sessions.push([days[i%days.length]].concat(s));
   });
-  var interns=[['Name','Department','Start Date','End Date','Mentor','Rating','Status']];
-  [['Vikram S.','Front Office','2026-06-01','2026-08-31','P. Kumar',4.5,'Active'],
-   ['Anjali R.','F&B Service','2026-05-15','2026-08-15','A. Mehta',4.8,'Active'],
-   ['Karan M.','Housekeeping','2026-04-01','2026-07-31','S. Roy',4.2,'Active'],
-   ['Tanya G.','Spa','2026-03-01','2026-06-30','M. Das',4.7,'Completed']].forEach(function(r){ interns.push(r); });
+  var internsRoster=[
+    ['Name','College Name','Mobile No.','Start Date','End Date','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26','Jan 27','Status'],
+    ['Aarav Sharma','IHM Pusa','+91 98100 12345','2026-08-01','2027-01-31','HK','Laundry','FO','F&B Service','Front Desk','Concierge','Active'],
+    ['Rhea Kapoor','IHM Mumbai','+91 98200 54321','2026-08-01','2027-01-31','FO','Concierge','HK','Laundry','F&B Service','Banquets','Active'],
+    ['Vikram Mehta','Welcomgroup School','+91 98111 88888','2026-08-01','2027-01-31','F&B Service','Banquets','In-Room Dining','FO','HK','Laundry','Active'],
+    ['Anjali Verma','IHM Aurangabad','+91 99999 77777','2026-08-01','2027-01-31','Kitchen','Pastry','F&B Service','HK','FO','Spa','Active'],
+    ['Karan Singhania','IHM Bangalore','+91 98765 43210','2026-08-01','2027-01-31','HK','FO','F&B Service','Kitchen','Concierge','Banquets','Active'],
+    ['Priya Nair','IHM Kolkata','+91 98111 22222','2026-08-01','2027-01-31','HK','F&B Service','Laundry','FO','Kitchen','Banquets','Active'],
+    ['Devender Kumar','IHM Hyderabad','+91 98333 44444','2026-02-01','2026-07-31','Completed','Completed','Completed','Completed','Completed','Completed','Completed'],
+    ['Sneha Gupta','IHM Chennai','+91 98444 55555','2026-02-01','2026-07-31','Completed','Completed','Completed','Completed','Completed','Completed','Completed'],
+    ['Rohan Joshi','IHM Delhi','+91 98555 66666','2026-03-01','2026-06-15','Left','Left','Left','Left','Left','Left','Left']
+  ];
+  var internDemand=[
+    ['Department','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26','Jan 27'],
+    ['HK',2,3,3,4,4,3],
+    ['FO',3,3,3,3,3,3],
+    ['F&B Service',3,4,4,5,5,4],
+    ['Kitchen',2,3,3,3,4,3],
+    ['Laundry',2,2,2,2,2,2],
+    ['Banquets',2,3,4,5,5,3],
+    ['Spa',1,1,1,1,2,1]
+  ];
   var reviews=[['Date','Guest','Platform','Rating','Category','Comment']];
   [['Priya M.','Google',5,'Promoter','Exceptional service, the concierge went above and beyond.'],
    ['James K.','TripAdvisor',4,'Passive','Lovely stay but the pool area needs attention.'],
@@ -1336,8 +1457,8 @@ function DEMO_SHEETS(){
    ['Neha G.','MakeMyTrip',5,'Promoter','The L&D training shows — staff is world class.']].forEach(function(r,i){
      reviews.push([days[i%days.length]].concat(r));
    });
-  return [ {name:'KPIs',rows:kpi},{name:'Training Sessions',rows:sessions},
-           {name:'Interns',rows:interns},{name:'Guest Reviews',rows:reviews} ];
+  return [ {name:'KPIs',rows:kpi},{name:'Interns Roster',rows:internsRoster},{name:'Intern Demand',rows:internDemand},
+           {name:'Training Sessions',rows:sessions},{name:'Guest Reviews',rows:reviews} ];
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1463,8 +1584,11 @@ function renderAll(){
 
   /* connection error */
   if(STATE.error){
-    page.appendChild(alertEl('error','⛔','Unable to load data from Google Sheets',
-      esc(STATE.error)+'<div class="msg" style="margin-top:6px">Check that the link is correct and the sheet is shared as <b>Anyone with the link → Viewer</b>.</div>',
+    page.appendChild(alertEl('error','⛔','Unable to load data from ' + (CFG.mode==='excel' ? 'Microsoft 365 / Excel Link' : 'Google Sheets'),
+      esc(STATE.error)+
+      (CFG.mode==='excel' ?
+        '<div class="msg" style="margin-top:6px;line-height:1.5"><b>Using a free personal Microsoft account?</b> Standard <code>1drv.ms/x/c/</code> share links block automated downloads with a Microsoft sign-in page. In Excel Web, click <b>File &rarr; Share &rarr; Embed</b>, click <b>Generate</b>, and paste that Embed URL in Settings.</div>' :
+        '<div class="msg" style="margin-top:6px">Check that the link is correct and the sheet is shared as <b>Anyone with the link &rarr; Viewer</b>.</div>'),
       [{label:'Open settings',act:'settings'},{label:'Retry',act:'retry'},{label:'Use demo data',act:'demo'}]));
     host.appendChild(page); wireAlertActions(page); return;
   }
@@ -1551,6 +1675,9 @@ function renderAll(){
     STATE.sections.filter(function(s){ return s.type==='reviews'; }).forEach(function(s,i){
       page.appendChild(renderReviewsSection(s,i,true));
     });
+    STATE.sections.filter(function(s){ return s.type==='interns_roster'; }).forEach(function(s,i){
+      page.appendChild(renderInternsRosterSection(s,i,true));
+    });
     STATE.sections.filter(function(s){ return s.type==='roster'; }).forEach(function(s,i){
       page.appendChild(renderRosterSection(s,i,true));
     });
@@ -1560,6 +1687,7 @@ function renderAll(){
   } else {
     page.appendChild(sec.type==='kpi'?renderKPISection(sec,0,false)
                    : sec.type==='reviews'?renderReviewsSection(sec,0,false)
+                   : sec.type==='interns_roster'?renderInternsRosterSection(sec,0,false)
                    : sec.type==='roster'?renderRosterSection(sec,0,false)
                    : renderTableSection(sec,0,false));
   }
@@ -2069,6 +2197,479 @@ function hueOf(str){
   return PALETTE[hsh%PALETTE.length];
 }
 
+/* ══════════════ INTERNS ROSTER SECTION (Rotation Table & Cards) ══════════════ */
+var DEFAULT_DEPT_DEMAND = {
+  'HK'            : 2,
+  'Housekeeping'  : 2,
+  'FO'            : 3,
+  'Front Office'  : 3,
+  'Front Desk'    : 2,
+  'Concierge'     : 2,
+  'F&B Service'   : 3,
+  'F&b service'   : 3,
+  'Banquets'      : 2,
+  'In-Room Dining': 2,
+  'Kitchen'       : 2,
+  'Culinary'      : 2,
+  'Pastry'        : 1,
+  'Laundry'       : 2,
+  'laundry'       : 2,
+  'Spa'           : 1,
+  'Spa & Wellness': 1
+};
+
+function getDeptDemandFromSheet(month, dept){
+  if(!month || !dept) return 2;
+  var targetDept = norm(dept);
+  var foundVal = null;
+
+  /* 1) Search for a dedicated "Intern Demand" / "Department Demand" / "Demand" / "Limits" tab in STATE.sections */
+  STATE.sections.forEach(function(sec){
+    if(/demand|limit|budget|capacity|required|target/i.test(norm(sec.name))){
+      var mCol = sec.columns.filter(function(c){
+        return norm(c.key) === norm(month) || norm(c.key).indexOf(norm(month)) !== -1;
+      })[0];
+      if(mCol){
+        sec.records.forEach(function(r){
+          var rowNameCol = sec.personCol || sec.columns[0];
+          var dName = norm(r[rowNameCol.key]);
+          if(dName === targetDept || dName.indexOf(targetDept) !== -1 || targetDept.indexOf(dName) !== -1){
+            var val = toNum(r[mCol.key]);
+            if(val != null && val >= 0) foundVal = val;
+          }
+        });
+      }
+    }
+  });
+  if(foundVal != null) return foundVal;
+
+  /* 2) Also check if there is a summary row inside the Interns Roster tab itself (e.g. row where Name="HK Demand") */
+  STATE.sections.filter(function(sec){ return sec.type === 'interns_roster'; }).forEach(function(sec){
+    var mCol = sec.columns.filter(function(c){ return norm(c.key) === norm(month); })[0];
+    if(mCol){
+      sec.records.forEach(function(r){
+        var nm = norm(sec.personCol ? r[sec.personCol.key] : r[sec.columns[0].key]);
+        if(/demand|limit|required|needed|capacity/i.test(nm) && nm.indexOf(targetDept) !== -1){
+          var val = toNum(r[mCol.key]);
+          if(val != null && val >= 0) foundVal = val;
+        }
+      });
+    }
+  });
+  if(foundVal != null) return foundVal;
+
+  /* 3) Fall back to default hotel department demand */
+  if(DEFAULT_DEPT_DEMAND[dept] != null) return DEFAULT_DEPT_DEMAND[dept];
+  return 2;
+}
+
+function classifyInternStatus(r, sec){
+  var stCol = sec.statusCol || sec.findCol(/^(status|state|stage|currentstatus|trainingstatus)$/);
+  if(stCol){
+    var s = String(r[stCol.key]||'').trim();
+    if(/left|resigned|discontinued|dropped|terminated|exited|quit|withdrawn|cancelled|failed/i.test(s)) return 'left';
+    if(/completed|cleared|finished|graduated|done|passed|end/i.test(s)) return 'finished';
+    if(/active|ongoing|intraining|training|current|live|running|joined/i.test(s)) return 'active';
+  }
+  var endCol = sec.findCol(/^(enddate|end|leavingdate|completiondate|dol)$/);
+  if(endCol){
+    var endIso = toISO(r[endCol.key]);
+    if(endIso && endIso < '2026-08-08') return 'finished';
+  }
+  return 'active';
+}
+
+function formatDeptBadge(dept, isOverLimit){
+  var s = String(dept||'').trim();
+  if(!s || s==='—' || s==='-' || s==='0') return '<span style="color:var(--muted-2)">—</span>';
+  var n = norm(s);
+  var cls = '';
+  if(/^(hk|housekeeping|room|cleaning)/.test(n)) cls = 'hk';
+  else if(/^(fo|frontoffice|frontdesk|reception|concierge|guest)/.test(n)) cls = 'fo';
+  else if(/^(fb|f&b|fnb|food|beverage|service|banquet|dining|bar|restaurant)/.test(n)) cls = 'fb';
+  else if(/^(kitchen|culinary|chef|pastry|bakery|production)/.test(n)) cls = 'culinary';
+  else if(/^(laundry|spa|wellness|hr|finance|admin|sales)/.test(n)) cls = 'laundry';
+  if(isOverLimit){
+    return '<span class="dept-badge '+cls+' over-limit" title="Department allocation exceeds required limit!">'+esc(s)+
+      ' <b class="alert-icon">⚠ OVER LIMIT</b></span>';
+  }
+  return '<span class="dept-badge '+cls+'">'+esc(s)+'</span>';
+}
+
+function openDemandHelpModal(month, depts){
+  var bg = $('#personModal');
+  var deptsList = depts.map(function(d){
+    var needed = getDeptDemandFromSheet(month, d);
+    return '<div class="pfield" style="align-items:center">' +
+      '<div class="pf-k" style="flex:0 0 50%;max-width:200px"><span class="pf-ic">🏛</span>' + esc(d) + '</div>' +
+      '<div class="pf-v"><span class="tag info" style="font-size:.76rem;font-weight:700">' + needed + ' needed</span> ' +
+      '<span style="font-size:.68rem;color:var(--muted);margin-left:6px">(taken from Google Sheets)</span></div>' +
+    '</div>';
+  }).join('');
+
+  bg.innerHTML = '<div class="modal glass person-modal" role="dialog" aria-modal="true" aria-label="Monthly Demand Source">' +
+    '<button class="pm-close" aria-label="Close">×</button>' +
+    '<div class="pm-head">' +
+      '<span class="avatar lg" style="background:rgba(61,220,132,.2);color:var(--good)">📊</span>' +
+      '<div style="min-width:0"><h3 style="margin:0">Monthly Demand Taken from Google Sheets</h3>' +
+      '<div class="pm-sub"><span class="tag good">Live Spreadsheet Sync</span><span class="pm-src">Single Source of Truth</span></div></div>' +
+    '</div>' +
+    '<div class="pm-body" style="max-height:50vh">' +
+      '<p style="font-size:.75rem;color:var(--text);line-height:1.6;margin:4px 4px 12px">' +
+        'To ensure all team members and L&amp;D coordinators see the exact same monthly demand numbers, <b>no data is edited locally on the dashboard</b>. All required limits are synced live directly from your Google Spreadsheet.' +
+      '</p>' +
+      '<div style="background:rgba(var(--tint),.05);border:1px solid var(--stroke-soft);border-left:3px solid var(--good);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:14px;font-size:.73rem;line-height:1.6">' +
+        '<b>How to add or update demand in Google Sheets:</b>' +
+        '<ol style="margin:6px 0 0 16px;padding:0">' +
+          '<li>In your Google Spreadsheet, add a tab named <b><code>Intern Demand</code></b> (or <b><code>Department Demand</code></b>).</li>' +
+          '<li>In column A, put <b><code>Department</code></b> (e.g. <code>HK</code>, <code>FO</code>, <code>F&amp;B Service</code>, <code>Kitchen</code>, <code>Laundry</code>).</li>' +
+          '<li>In columns B onwards, add your month headers matching your roster (<b><code>Aug 26</code></b>, <b><code>Sep 26</code></b>, <b><code>Oct 26</code></b>, …).</li>' +
+          '<li>Enter the required number of interns per department for each month. The dashboard syncs these automatically!</li>' +
+        '</ol>' +
+      '</div>' +
+      '<div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin:8px 4px 6px">Current limits for ' + esc(month) + ' (read from spreadsheet):</div>' +
+      deptsList +
+    '</div>' +
+    '<div class="modal-foot">' +
+      '<button class="ibtn primary" data-pm-close>Got it</button>' +
+    '</div>' +
+  '</div>';
+  bg.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  var closeIt = function(){
+    bg.classList.remove('open');
+    bg.innerHTML = '';
+    document.body.style.overflow = '';
+  };
+  var closeBtn = bg.querySelector('.pm-close');
+  if(closeBtn) closeBtn.addEventListener('click', closeIt);
+  var gotItBtn = bg.querySelector('[data-pm-close]');
+  if(gotItBtn) gotItBtn.addEventListener('click', closeIt);
+}
+
+function renderInternsRosterSection(sec, idx, compact){
+  var wrap = document.createElement('section');
+  wrap.className = 'sec'; wrap.style.animationDelay = (idx*0.06)+'s';
+  var st = STATE.tableState[sec.id] = STATE.tableState[sec.id] || {
+    q: '',
+    view: 'table',
+    statusTab: 'active',
+    activeMonth: null,
+    deptFilter: null,
+    sort: null,
+    dir: 1
+  };
+
+  var allRows = sec.records.slice();
+  allRows.forEach(function(r, i){ r.__idx = i; });
+
+  /* Classify rows into Active / Finished / Left */
+  var counts = { active: 0, finished: 0, left: 0, all: allRows.length };
+  allRows.forEach(function(r){
+    var cat = classifyInternStatus(r, sec);
+    r.__statusCat = cat;
+    if(counts[cat] !== undefined) counts[cat]++;
+  });
+
+  /* 1) Detect rotation month columns in the table (e.g. "Aug 26", "Sep 26", "Oct 26") */
+  var cols = sec.columns.filter(function(c){ return c.filled > 0 && !RX.ignore.test(norm(c.key)); });
+  var monthCols = cols.filter(function(c){
+    return /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s*\d{2,4}$/i.test(c.key) || /\d{2}$/.test(c.key);
+  });
+
+  if(!st.activeMonth && monthCols.length){
+    var nowAlt = new Date().toLocaleDateString('en-GB', { month:'short' }); // "Aug"
+    var cur = monthCols.filter(function(c){ return norm(c.key).indexOf(norm(nowAlt)) !== -1; })[0];
+    st.activeMonth = cur ? cur.key : monthCols[0].key;
+  }
+
+  var head = document.createElement('div');
+  head.className = 'sec-head';
+  head.innerHTML = '<div class="sec-title">' + esc(sec.name) + '</div>' +
+    '<span class="badge">' + counts[st.statusTab] + ' ' + (st.statusTab === 'active' ? 'active interns' : 'interns') + '</span>' +
+    '<span class="badge b3">Live Google Sheets Table</span>' +
+    '<span class="badge b4">Month-Wise Roster</span>' +
+    (compact ? '<div class="sec-spacer"><button class="ibtn" data-open="' + esc(sec.id) + '">Open &rarr;</button></div>' : '');
+  wrap.appendChild(head);
+
+  if(!allRows.length){
+    wrap.appendChild(alertEl('warn', '📄', '“' + esc(sec.name) + '” is empty',
+      'No intern rows were found in this Google Sheets tab. Add intern rows and press Refresh.', []));
+    return wrap;
+  }
+
+  var card = document.createElement('div');
+  card.className = 'card';
+
+  /* Build Sub-Tabs HTML (Active / Finished / Left) */
+  var tabsHtml = '<div class="roster-subtabs">' +
+    '<button type="button" class="roster-subtab ' + (st.statusTab === 'active' ? 'on' : '') + '" data-roster-tab="active">🟢 Active Interns <span class="cnt">' + counts.active + '</span></button>' +
+    '<button type="button" class="roster-subtab ' + (st.statusTab === 'finished' ? 'on' : '') + '" data-roster-tab="finished">🏁 Finished / Completed <span class="cnt">' + counts.finished + '</span></button>' +
+    '<button type="button" class="roster-subtab ' + (st.statusTab === 'left' ? 'on' : '') + '" data-roster-tab="left">⛔ Left / Discontinued <span class="cnt">' + counts.left + '</span></button>' +
+    '<button type="button" class="roster-subtab ' + (st.statusTab === 'all' ? 'on' : '') + '" data-roster-tab="all">All Interns <span class="cnt">' + counts.all + '</span></button>' +
+  '</div>';
+
+  /* Build Month Strip HTML */
+  var monthsHtml = monthCols.length ? '<div class="month-strip">' + monthCols.map(function(mc){
+    var isOn = mc.key === st.activeMonth;
+    var isNowMonth = norm(mc.key).indexOf(norm(new Date().toLocaleDateString('en-GB', { month:'short' }))) !== -1;
+    return '<button type="button" class="m-chip ' + (isOn ? 'on' : '') + '" data-month-select="' + esc(mc.key) + '">' +
+      '📅 ' + esc(mc.key) + (isNowMonth ? ' ★' : '') + '</button>';
+  }).join('') + '</div>' : '';
+
+  card.innerHTML = tabsHtml + monthsHtml +
+    '<div class="dept-demand-section" style="margin-bottom:18px"></div>' +
+    '<div class="toolbar">' +
+      '<div class="search"><span class="si">🔍</span>' +
+        '<input class="txt" type="text" placeholder="Search interns by Name, College, Mobile, or Department..." data-search="' + esc(sec.id) + '" value="' + esc(st.q) + '">' +
+      '</div>' +
+      '<div class="seg" style="margin-left:auto">' +
+        '<button type="button" data-view-btn="table" class="' + (st.view === 'table' ? 'on' : '') + '">📋 Table View</button>' +
+        '<button type="button" data-view-btn="cards" class="' + (st.view === 'cards' ? 'on' : '') + '">👥 Cards View</button>' +
+      '</div>' +
+      '<button class="ibtn" data-csv="' + esc(sec.id) + '">⭳ CSV</button>' +
+    '</div>' +
+    '<div id="activeDeptFilterMsg" style="margin-bottom:10px"></div>' +
+    '<div class="tbl-wrap" data-mode-view="table" style="display:' + (st.view === 'table' ? '' : 'none') + '">' +
+      '<table><thead><tr>' + cols.map(function(c){
+        var isCurMonth = c.key === st.activeMonth;
+        var sorted = st.sort === c.key;
+        return '<th data-sort="' + esc(c.key) + '" class="' + (sorted ? 'sorted ' : '') + (isCurMonth ? 'cur-month' : '') + '" title="' + (isCurMonth ? 'Active Selected Rotation Month' : '') + '">' +
+          esc(c.key) + (isCurMonth ? ' ★' : '') + '<span class="sort">' + (sorted ? (st.dir > 0 ? '▲' : '▼') : '⇅') + '</span></th>';
+      }).join('') + '</tr></thead><tbody></tbody></table>' +
+    '</div>' +
+    '<div class="roster-groups" data-mode-view="cards" style="display:' + (st.view === 'cards' ? '' : 'none') + '"></div>' +
+    '<div class="empty" data-noresult style="display:none"><span class="e-ic">🔍</span>No interns match your current filter</div>';
+  wrap.appendChild(card);
+
+  function paint(){
+    var q = st.q.trim().toLowerCase();
+    /* Filter by Sub-Tab (Active / Finished / Left / All) */
+    var view = allRows.filter(function(r){
+      if(st.statusTab !== 'all' && r.__statusCat !== st.statusTab) return false;
+      if(st.deptFilter && st.activeMonth){
+        var rDept = String(r[st.activeMonth] || '').trim();
+        if(norm(rDept) !== norm(st.deptFilter)) return false;
+      }
+      if(!q) return true;
+      return cols.some(function(c){ return String(r[c.key]).toLowerCase().indexOf(q) !== -1; });
+    });
+
+    /* Month-Wise Sorting: Default to sorting by activeMonth department posting if sort is null */
+    var sortKey = st.sort || st.activeMonth || cols[0].key;
+    view = view.slice().sort(function(a, b){
+      var av = a[sortKey], bv = b[sortKey];
+      return String(av).localeCompare(String(bv), undefined, {numeric: true}) * (st.sort ? st.dir : 1);
+    });
+
+    /* 1) Calculate department allocations for activeMonth among ACTIVE interns */
+    var activeRowsInMonth = allRows.filter(function(r){ return r.__statusCat === 'active'; });
+    var deptCounts = {};
+    if(st.activeMonth){
+      activeRowsInMonth.forEach(function(r){
+        var dName = String(r[st.activeMonth] || '').trim();
+        if(dName && dName !== '—' && dName !== '-' && dName !== '0'){
+          deptCounts[dName] = (deptCounts[dName] || 0) + 1;
+        }
+      });
+    }
+    var activeDepts = Object.keys(deptCounts).sort(function(a,b){ return deptCounts[b] - deptCounts[a]; });
+    if(!activeDepts.length && monthCols.length) activeDepts = ['HK', 'FO', 'F&B Service', 'Kitchen', 'Laundry', 'Banquets'];
+
+    /* 2) Render Department Demand & Allocation Grid */
+    var demandHost = $('.dept-demand-section', card);
+    if(demandHost && st.activeMonth){
+      var cardsHtml = activeDepts.map(function(d){
+        var allotted = deptCounts[d] || 0;
+        var needed = getDeptDemandFromSheet(st.activeMonth, d);
+        var diff = allotted - needed;
+        var isOver = diff > 0;
+        var tagHtml = '';
+        if(isOver) tagHtml = '<span class="tag bad">⚠ +' + diff + ' OVER LIMIT</span>';
+        else if(diff === 0) tagHtml = '<span class="tag good">✓ Full (100%)</span>';
+        else tagHtml = '<span class="tag info">' + Math.abs(diff) + ' Vacancy</span>';
+
+        var isFiltered = st.deptFilter && norm(st.deptFilter) === norm(d);
+        return '<div class="dept-card ' + (isOver ? 'over-limit ' : '') + (isFiltered ? 'active-filter' : '') + '" data-dept-card="' + esc(d) + '" title="Click to filter table by ' + esc(d) + '">' +
+          '<div class="dept-card-title">' +
+            '<span>' + formatDeptBadge(d, false) + '</span>' +
+            '<span style="font-size:.65rem;color:var(--muted)">' + esc(st.activeMonth) + '</span>' +
+          '</div>' +
+          '<div class="dept-card-num">' + allotted + ' <span style="font-size:.8rem;font-weight:600;color:var(--muted)">allotted</span></div>' +
+          '<div class="dept-card-sub">' +
+            '<span>Required limit: <b style="color:var(--text-2)">' + needed + '</b></span>' +
+            tagHtml +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      demandHost.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">' +
+        '<div style="font-size:.82rem;font-weight:700;color:var(--text-2)">' +
+          'Department Demand &amp; Allocation · <span style="color:var(--gold)">' + esc(st.activeMonth) + '</span>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center">' +
+          '<span class="badge b2" style="font-size:.64rem">' + activeRowsInMonth.length + ' active interns allocated</span>' +
+          '<button type="button" class="ibtn" id="demandHelpBtn" title="How to set required capacity in Google Sheets">📊 Demand Source: Google Sheets</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="dept-demand-grid">' + cardsHtml + '</div>';
+
+      var helpBtn = $('#demandHelpBtn', demandHost);
+      if(helpBtn && helpBtn.addEventListener){
+        helpBtn.addEventListener('click', function(){
+          openDemandHelpModal(st.activeMonth, activeDepts);
+        });
+      }
+
+      $$('[data-dept-card]', demandHost).forEach(function(dc){
+        dc.addEventListener('click', function(){
+          var dName = this.dataset.deptCard;
+          if(st.deptFilter && norm(st.deptFilter) === norm(dName)) st.deptFilter = null;
+          else st.deptFilter = dName;
+          paint();
+        });
+      });
+    }
+
+    /* 3) Active filter banner */
+    var fMsgEl = $('#activeDeptFilterMsg', card);
+    if(fMsgEl){
+      if(st.deptFilter){
+        fMsgEl.innerHTML = '<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:var(--gold-dim);border:1px solid var(--gold);font-size:.72rem;color:var(--gold);font-weight:700">' +
+          '<span>Filtering by Department (' + esc(st.activeMonth) + '): <b>' + esc(st.deptFilter) + '</b></span>' +
+          '<button type="button" id="clearDeptFilterBtn" style="background:none;border:0;color:inherit;font-weight:800;cursor:pointer;padding:0 4px">×</button>' +
+          '</div>';
+        var clrBtn = $('#clearDeptFilterBtn', fMsgEl);
+        if(clrBtn && clrBtn.addEventListener) clrBtn.addEventListener('click', function(){ st.deptFilter = null; paint(); });
+      } else {
+        fMsgEl.innerHTML = '';
+      }
+    }
+
+    /* 4) Paint Table View */
+    var tbody = $('tbody', card);
+    if(tbody) tbody.innerHTML = view.map(function(r, i){
+      return '<tr class="is-click" data-row="' + r.__idx + '" tabindex="0" role="button" aria-label="Open details for ' + esc(String(r[cols[0].key]||'')) + '" style="animation-delay:' + Math.min(i*0.02, 0.4).toFixed(2) + 's">' +
+        cols.map(function(c){
+          var isCurMonth = c.key === st.activeMonth;
+          var raw = String(r[c.key] == null ? '' : r[c.key]).trim();
+          var nk = norm(c.key);
+          var html = '';
+
+          /* Check if this cell's department is OVER LIMIT in activeMonth */
+          var isOverLimitCell = false;
+          if(isCurMonth && r.__statusCat === 'active' && raw && raw !== '—' && raw !== '-' && raw !== '0'){
+            var neededCnt = getDeptDemandFromSheet(st.activeMonth, raw);
+            var allottedCnt = deptCounts[raw] || 0;
+            if(allottedCnt > neededCnt) isOverLimitCell = true;
+          }
+
+          if(nk === 'name' || nk === 'internname' || c === sec.personCol){
+            var nm = raw || '—';
+            html = '<div style="display:flex;align-items:center;gap:8px">' +
+              '<span class="avatar" style="width:26px;height:26px;font-size:.62rem;background:' + hueOf(nm) + '22;color:' + hueOf(nm) + '">' + esc(initialsOf(nm)) + '</span>' +
+              '<b style="color:var(--text-2)">' + esc(nm) + '</b></div>';
+          } else if(/college|institute|school/.test(nk)){
+            html = raw ? '<span class="tag">' + esc(raw) + '</span>' : '—';
+          } else if(/mobile|phone|contact/.test(nk)){
+            html = raw ? '<span style="font-family:monospace;font-size:.73rem">📱 ' + esc(raw) + '</span>' : '—';
+          } else if(/^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/.test(nk) || /\d{2}$/.test(c.key)){
+            html = formatDeptBadge(raw, isOverLimitCell);
+          } else {
+            html = cellHTML(raw, c);
+          }
+          return '<td class="' + (isCurMonth ? 'cur-month ' : '') + (isOverLimitCell ? 'over-limit-cell' : '') + '">' + html + '</td>';
+        }).join('') +
+      '</tr>';
+    }).join('');
+
+    /* 5) Paint Cards View */
+    var cardsHost = $('.roster-groups', card);
+    var collegeCol = sec.findCol(/^(collegename|college|institute|university|school)$/);
+    var mobCol = sec.findCol(/^(mobileno|mobile|phone|contact)$/);
+    var activeMonthCol = cols.filter(function(c){ return c.key === st.activeMonth; })[0];
+
+    if(cardsHost) cardsHost.innerHTML = '<div class="people" style="margin-top:10px">' + view.map(function(r, i){
+      var nm = String(sec.personCol ? r[sec.personCol.key] : r[cols[0].key] || '—');
+      var clg = collegeCol ? String(r[collegeCol.key] || '') : '';
+      var mob = mobCol ? String(r[mobCol.key] || '') : '';
+      var post = activeMonthCol ? String(r[activeMonthCol.key] || '') : '';
+      return '<button class="person" data-person="' + r.__idx + '" style="animation-delay:' + Math.min(i*0.02, 0.4).toFixed(2) + 's" title="View details for ' + esc(nm) + '">' +
+        '<span class="avatar lg" style="background:' + hueOf(nm) + '22;color:' + hueOf(nm) + ';border-color:' + hueOf(nm) + '55">' + esc(initialsOf(nm)) + '</span>' +
+        '<span class="pmeta">' +
+          '<span class="pname">' + esc(nm) + '</span>' +
+          (clg ? '<span class="pdept">🎓 ' + esc(clg) + '</span>' : '') +
+          (mob ? '<span class="pdept" style="font-family:monospace">📱 ' + esc(mob) + '</span>' : '') +
+        '</span>' +
+        (post ? '<span class="tag info psmall" style="margin-left:auto">' + esc(st.activeMonth) + ': <b>' + esc(post) + '</b></span>' : '') +
+        '<span class="pchev">›</span>' +
+      '</button>';
+    }).join('') + '</div>';
+
+    var nrEl = $('[data-noresult]', card);
+    if(nrEl) nrEl.style.display = view.length ? 'none' : 'block';
+    var badgeEl = $('.badge', head);
+    if(badgeEl) badgeEl.textContent = view.length + ' interns shown';
+
+    $$('tr[data-row], [data-person]', card).forEach(function(el){
+      var openIt = function(){
+        var idxVal = el.dataset.row || el.dataset.person;
+        var rec = allRows.filter(function(x){ return String(x.__idx) === idxVal; })[0];
+        if(rec) openPersonModal(sec, rec);
+      };
+      el.addEventListener('click', openIt);
+      if(el.tagName === 'TR') el.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openIt(); } });
+    });
+  }
+  paint();
+
+  var searchEl = $('[data-search]', card);
+  if(searchEl && searchEl.addEventListener) searchEl.addEventListener('input', function(){ st.q = this.value; paint(); });
+
+  $$('th[data-sort]', card).forEach(function(th){
+    th.addEventListener('click', function(){
+      var k = this.dataset.sort;
+      if(st.sort === k) st.dir = -st.dir; else { st.sort = k; st.dir = 1; }
+      $$('th', card).forEach(function(x){ x.classList.remove('sorted'); var sk = x.querySelector('.sort'); if(sk) sk.textContent = '⇅'; });
+      this.classList.add('sorted'); var sEl = this.querySelector('.sort'); if(sEl) sEl.textContent = st.dir > 0 ? '▲' : '▼';
+      paint();
+    });
+  });
+
+  $$('[data-roster-tab]', card).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      st.statusTab = this.dataset.rosterTab;
+      $$('[data-roster-tab]', card).forEach(function(b){ b.classList.toggle('on', b.dataset.rosterTab === st.statusTab); });
+      paint();
+    });
+  });
+
+  $$('[data-month-select]', card).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      st.activeMonth = this.dataset.monthSelect;
+      $$('[data-month-select]', card).forEach(function(b){ b.classList.toggle('on', b.dataset.monthSelect === st.activeMonth); });
+      $$('th[data-sort]', card).forEach(function(th){
+        th.classList.toggle('cur-month', th.dataset.sort === st.activeMonth);
+      });
+      paint();
+    });
+  });
+
+  $$('[data-view-btn]', card).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      st.view = this.dataset.viewBtn;
+      $$('[data-view-btn]', card).forEach(function(b){ b.classList.toggle('on', b.dataset.viewBtn === st.view); });
+      $('[data-mode-view="table"]', card).style.display = st.view === 'table' ? '' : 'none';
+      $('[data-mode-view="cards"]', card).style.display = st.view === 'cards' ? '' : 'none';
+    });
+  });
+
+  var csvEl = $('[data-csv]', card);
+  if(csvEl && csvEl.addEventListener) csvEl.addEventListener('click', function(){ exportCSV(sec, cols, allRows); });
+  return wrap;
+}
+
 function renderRosterSection(sec,idx,compact){
   var wrap=document.createElement('section');
   wrap.className='sec'; wrap.style.animationDelay=(idx*0.06)+'s';
@@ -2186,13 +2787,13 @@ var PERSON_FIELDS=[
   { label:'Status',             rx:/^(status|state|stage|currentstatus|trainingstatus)$/,                icon:'●' }
 ];
 function openPersonModal(sec,rec){
-  var name=String(rec[sec.personCol.key]||'—');
-  var statusVal=String(rec[sec.statusCol.key]||'');
+  var name=String(sec.personCol ? (rec[sec.personCol.key]||'—') : (rec[sec.columns[0].key]||'—'));
+  var statusVal=String(sec.statusCol ? (rec[sec.statusCol.key]||'') : 'Active');
   var b=ROSTER_BUCKETS.filter(function(x){ return x.id===bucketOf(statusVal); })[0]||ROSTER_BUCKETS[3];
   var col=hueOf(name);
 
   var used={};
-  used[sec.personCol.key]=1;
+  if(sec.personCol) used[sec.personCol.key]=1;
   var blocks=[];
 
   PERSON_FIELDS.forEach(function(f){
@@ -2241,7 +2842,7 @@ function openPersonModal(sec,rec){
       var none=/^(none|nil|no|na|n\/a|clear|all\s*(submitted|clear|done)|0|-)$/i.test(raw);
       val=none?'<span class="tag good">All documents submitted</span>'
               :'<span class="tag bad">'+esc(raw)+'</span>';
-    } else if(norm(c.key)===norm(sec.statusCol.key)){
+    } else if(sec.statusCol && norm(c.key)===norm(sec.statusCol.key)){
       val='<span class="tag '+b.tag+'">'+esc(raw)+'</span>';
     } else {
       val=esc(raw);
@@ -2728,7 +3329,7 @@ document.addEventListener('DOMContentLoaded',function(){
       toast('Microsoft 365 Excel link discovers all workbook tabs automatically! No manual tab names required.','ok');
     } else {
       setMode('gviz');
-      $('#cfgTabs').value='KPIs, Reviews, Surveys, Interns, Apprentices, Training Sessions';
+      $('#cfgTabs').value='KPIs, Interns Roster, Reviews, Training Sessions, Surveys, Apprentices';
       toast('Standard tab names filled in — press Save & connect','ok');
     }
   });
@@ -2817,5 +3418,5 @@ document.addEventListener('click',function(e){
   if(b) switchPage(b.dataset.open);
 });
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25fd18078d24700',t:'MTc4NTg3MDE2Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2807efc7dff8a7c',t:'MTc4NjIxMjgxNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
