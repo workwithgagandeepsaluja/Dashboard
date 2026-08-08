@@ -15,7 +15,7 @@ file, `index.html` — no build step, no server. Open it directly or host it any
 3. Open the dashboard, click the **⚙** button in the top bar.
 4. Mode = **Sheet link** → paste the URL.
 5. *(Recommended)* type your tab names in the **Tab names** box, comma separated —
-   e.g. `KPIs, Training Sessions, Interns, Guest Reviews`.
+   e.g. `KPIs, Training Sessions, Interns Roster, Intern Demand, Guest Reviews`.
 6. **Save & connect.**
 
 The setting is remembered in the browser. To bake the link into the file permanently,
@@ -25,7 +25,7 @@ edit this block near the top of the `<script>` in `index.html`:
 var DEFAULT_CONFIG = {
   mode      : 'gviz',
   sheetId   : 'PASTE_YOUR_SHEET_URL_OR_ID_HERE',
-  tabs      : [],          // e.g. ['KPIs','Training Sessions','Interns']
+  tabs      : [],          // e.g. ['KPIs','Interns Roster','Intern Demand','Training Sessions']
   refreshMs : 300000
 };
 ```
@@ -149,10 +149,9 @@ A new nav tab, cards/table, charts and date handling are generated automatically
 
 - **`index.html`** — the complete dashboard (open this).
 - **`apps-script.gs`** — optional Google Apps Script endpoint for private sheets.
-- **`SETUP.md`** — this guide.
+- **`SETUP.md`** / **`setup.md`** — this guide.
 
-
-
+---
 
 # How to Format Your Google Spreadsheet
 
@@ -243,51 +242,64 @@ staff member named as its own chip, and a **⧉ Copy review** button for that si
 
 ---
 
-## Tab 3 — `Interns` (clickable people cards)
+## Tab 3 — `Interns Roster` / `Interns` (Month-by-Month Rotation Table & Roster)
 
-Any tab with a **person-name column** plus a **Status column** becomes a people section:
-interns are automatically **sorted into categories** and every name opens a detail popup.
+Any tab named **`Interns Roster`**, **`Interns`**, or **`Roster`** (or any tab with a person-name column and rotation/status columns) becomes an interactive people and rotation tracker.
 
-| Name | Department | Current Rotation | College | Start Date | End Date | Mentor | Attendance % | Bank Details | Pending Documents | Appreciation Certificate | Contact | Status |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SASWAT CHOUHAN | ALL DEPT | FO | AMITY UNIVERSITY NOIDA | 2026-05-18 | 2026-09-30 | P. Kumar | 94 | HDFC ****4821 / HDFC0001234 | None | Yes - Guest Delight Award | saswat@example.com | Active |
-| TANYA GHOSH | SPA | Spa & Wellness | IHM PUSA | 2026-03-01 | 2026-06-30 | M. Das | 97 | HDFC ****2244 | None | Yes - Wellness Star | tanya@example.com | Completed |
-| VIKAS MEHRA | F&B SERVICE | F & B Service | AIHM | 2026-04-01 | 2026-06-15 | A. Mehta | 41 | BOB ****4455 | Exit form pending | No | vikas@example.com | Left |
+### 1. Month-by-Month Rotation Table (`Interns Roster`)
 
-### The three automatic categories
+| Name | College Name | Mobile No. | Start Date | End Date | Aug 26 | Sep 26 | Oct 26 | Nov 26 | Dec 26 | Jan 27 | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Aarav Sharma | IHM Pusa | +91 98100 12345 | 2026-08-01 | 2027-01-31 | HK | Laundry | FO | F&B Service | Front Desk | Concierge | Active |
+| Rhea Kapoor | IHM Mumbai | +91 98200 54321 | 2026-08-01 | 2027-01-31 | FO | Concierge | HK | Laundry | F&B Service | Banquets | Active |
+| Vikram Mehta | Welcomgroup School | +91 98111 88888 | 2026-08-01 | 2027-01-31 | F&B Service | Banquets | In-Room Dining | FO | HK | Laundry | Active |
+| Anjali Verma | IHM Aurangabad | +91 99999 77777 | 2026-08-01 | 2027-01-31 | Kitchen | Pastry | F&B Service | HK | FO | Spa | Active |
+| Devender Kumar | IHM Hyderabad | +91 98333 44444 | 2026-02-01 | 2026-07-31 | Completed | Completed | Completed | Completed | Completed | Completed | Completed |
+| Rohan Joshi | IHM Delhi | +91 98555 66666 | 2026-03-01 | 2026-06-15 | Left | Left | Left | Left | Left | Left | Left |
 
-The **Status** cell decides which group an intern lands in:
+#### Automatic Sub-Tab Categorization
+Interns are automatically categorized into four segmented sub-tabs:
+1. **🟢 Active Interns** *(Default view)*: Interns currently rotating (`Status: Active`).
+2. **🏁 Finished / Completed**: Interns whose internship is over (`Status: Completed` or `End Date < Today`). They are automatically hidden from the current active section.
+3. **⛔ Left / Discontinued**: Interns who left early (`Status: Left`, `Resigned`, `Discontinued`).
+4. **All Interns**: View the entire historical roster.
 
-| Group shown | Status words that land there |
-|---|---|
-| **Active / In Training** | `Active`, `Ongoing`, `In Training`, `Current`, `In Progress`, `Joined` |
-| **Cleared / Completed** | `Cleared`, `Completed`, `Finished`, `Done`, `Passed`, `Graduated`, `Certified`, `End` |
-| **Left / Discontinued** | `Left`, `Resigned`, `Discontinued`, `Dropped`, `Terminated`, `Absconded`, `Quit`, `Failed` |
+#### Month-Wise Controls & Highlights
+- **Month Selector Strip**: Click any month (`[Aug 26 ★]` `[Sep 26]`) to make it the active rotation month.
+- **Current Month Auto-Highlighting**: The month closest to today (`Aug 26`) is automatically highlighted with a golden outline and star (`★`).
+- **Month-Wise Sorting**: Sorting operates alphabetically on the selected month's department posting column (`Aug 26`).
 
-Anything unrecognised goes into an **Other** group, so nobody is ever hidden.
-Just change the Status cell and the intern moves group on the next refresh.
+---
 
-### Clicking a name
+## Tab 4 — `Intern Demand` (Monthly Department Capacity & Over-Limit Alerts)
 
-Every name is a button. Clicking (or pressing Enter) opens a popup with:
+Acts as the **Single Source of Truth** for how many interns are required in each department per month. No data is stored or edited locally in the browser—all limits are synced directly from Google Sheets.
 
-- **Current department** and **current rotation**
-- **Start date → End date**, formatted for readability
-- **Attendance %** as a colour-coded bar (green ≥ 90, amber ≥ 75, red below)
-- **Bank details — masked by default**, with a **Show/Hide** button so account numbers
-  aren't exposed over someone's shoulder or on a shared screen
-- **Pending documents** — green "All documents submitted" when the cell says
-  `None`/`Nil`/`NA`, otherwise a red chip listing what's missing
-- **Appreciation certificate**, mentor, contact, status
-- **⧉ Copy details** to copy the whole profile as text
+| Department | Aug 26 | Sep 26 | Oct 26 | Nov 26 | Dec 26 | Jan 27 |
+|---|---|---|---|---|---|---|
+| HK | 2 | 3 | 3 | 4 | 4 | 3 |
+| FO | 3 | 3 | 3 | 3 | 3 | 3 |
+| F&B Service | 3 | 4 | 4 | 5 | 5 | 4 |
+| Kitchen | 2 | 3 | 3 | 3 | 4 | 3 |
+| Laundry | 2 | 2 | 2 | 2 | 2 | 2 |
+| Banquets | 2 | 3 | 4 | 5 | 5 | 3 |
+| Spa | 1 | 1 | 1 | 1 | 2 | 1 |
 
-**Any extra column you add to the tab also appears in the popup automatically** — no code
-change needed. Columns are matched by meaning, so `DOJ`, `Date of Joining` and `Start Date`
-all work, as do `Attendance`, `Attendance %`, `A/C No.`, `Bank`, `IFSC`, `Docs Pending`.
+### Over-Capacity Warning Engine
+When `Aug 26` is selected on the Interns Roster:
+* The dashboard reads the required limit for each department directly from the `Intern Demand` sheet (e.g., `HK -> 2 needed`).
+* It counts how many **Active Interns** are assigned to that department in `Aug 26` (e.g., `3 allotted`).
+* **If `Allotted > Needed`**:
+  * The Department Allocation Card turns glowing red:  
+    **`3 allotted / 2 needed — ⚠ +1 OVER LIMIT`**
+  * Every intern assigned to that department in the table gets a red highlighted cell and badge:  
+    `[HK ⚠ OVER LIMIT]`
+* **If `Allotted == Needed`**: Card displays green **`✓ Full (100%)`**.
+* **If `Allotted < Needed`**: Card displays blue **`1 Vacancy`**.
 
-Leave a cell blank and the popup shows a soft "Not recorded" rather than a gap.
+---
 
-## Tab 4 — `Apprentices`
+## Tab 5 — `Apprentices`
 
 Same clickable-people layout as Interns, with apprenticeship-specific fields. Because the
 dashboard detects **any** tab that has a person-name column plus a Status column, this tab
@@ -317,7 +329,7 @@ appreciation, mentor, contact) behaves exactly as on the Interns tab.
 
 ---
 
-## Tab 5 — `Surveys` (clickable rows)
+## Tab 6 — `Surveys` (clickable rows)
 
 Guest satisfaction surveys have a lot of columns, so the table stays compact and
 **every row opens a popup** with the full record.
@@ -340,7 +352,7 @@ are shown as plain numbers, never as rating bars.
 
 ---
 
-## Tab 6 — `Training Sessions`
+## Tab 7 — `Training Sessions`
 
 | Date | Session | Trainer | Department | Status | Attendees | Score |
 |---|---|---|---|---|---|---|
@@ -362,7 +374,7 @@ Add a new tab with a header row — a new nav tab and section appear on their ow
 ### Making sure a tab actually shows up
 
 Common tab names are now **auto-discovered** even in "Sheet link" mode — including
-`Interns`, `Apprentices`, `Trainees`, `Surveys`, `Reviews`, `Training Sessions`, `KPIs`
+`Interns Roster`, `Intern Demand`, `Interns`, `Apprentices`, `Trainees`, `Surveys`, `Reviews`, `Training Sessions`, `KPIs`
 and variations like `Apprentice Data`.
 
 If you use a non-standard name, type it into ⚙ → **Tab names**, or press
